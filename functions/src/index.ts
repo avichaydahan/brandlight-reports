@@ -1,0 +1,338 @@
+import { initializeApp, getApps } from 'firebase-admin/app';
+import { onRequest, onCall } from 'firebase-functions/v2/https';
+import { setGlobalOptions } from 'firebase-functions/v2';
+import {
+  CreateJobRequest,
+  CreateJobRequestSchema,
+  Job,
+} from './types/index.js';
+import { FirestoreService } from './services/firestore.service.js';
+import { StorageService } from './services/storage.service.js';
+import { PDFService } from './services/pdf.service.js';
+import { createLogger } from './utils/logger.js';
+import { config } from './config/index.js';
+import fetch from 'node-fetch';
+
+const logger = createLogger('HTTPFunctions');
+
+// Set global options for all functions
+setGlobalOptions({
+  region: config.functions.region,
+  memory: config.functions.memory,
+  timeoutSeconds: config.functions.timeout,
+});
+
+// Initialize Firebase Admin
+if (!getApps().length) {
+  initializeApp();
+}
+
+// Initialize services
+const firestoreService = new FirestoreService();
+const storageService = new StorageService();
+const pdfService = new PDFService();
+
+/**
+ * HTTP endpoint to create a new PDF report job
+ */
+export const createReport = onRequest(
+  {
+    memory: '1GiB',
+    timeoutSeconds: 60,
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'POST method required' });
+        return;
+      }
+
+      // Validate request body
+      const validatedRequest = CreateJobRequestSchema.parse(req.body);
+      logger.info('Creating new report job', {
+        reportType: validatedRequest.reportType,
+      });
+
+      // Create job in Firestore
+      const job = await firestoreService.createJob({
+        type: validatedRequest.reportType,
+        status: 'pending',
+        progress: 0,
+        metadata: {
+          requestData: validatedRequest.data,
+          options: validatedRequest.options,
+        },
+      });
+
+      // Enqueue background processing task
+      await enqueueBackgroundTask(job.id, validatedRequest);
+
+      res.status(201).json({
+        jobId: job.id,
+        status: job.status,
+        message: 'Report generation started',
+      });
+    } catch (error) {
+      logger.error('Failed to create report', error as Error);
+      res.status(500).json({
+        error: 'Failed to create report',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+);
+
+/**
+ * HTTP endpoint to get job status
+ */
+export const getJobStatus = onRequest(
+  {
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      const jobId = req.query.jobId as string;
+
+      if (!jobId) {
+        res.status(400).json({ error: 'jobId parameter required' });
+        return;
+      }
+
+      const job = await firestoreService.getJob(jobId);
+
+      if (!job) {
+        res.status(404).json({ error: 'Job not found' });
+        return;
+      }
+
+      res.json({
+        job,
+        message: getStatusMessage(job.status),
+      });
+    } catch (error) {
+      logger.error('Failed to get job status', error as Error);
+      res.status(500).json({
+        error: 'Failed to get job status',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+);
+
+/**
+ * Callable function to get job statistics (for admin dashboard)
+ */
+export const getJobStats = onCall(
+  {
+    memory: '512MiB',
+  },
+  async (request) => {
+    try {
+      // In production, add authentication checks here
+      logger.info('Retrieving job statistics');
+
+      const stats = await firestoreService.getJobStats();
+      return { success: true, data: stats };
+    } catch (error) {
+      logger.error('Failed to get job statistics', error as Error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+);
+
+/**
+ * HTTP endpoint for cleanup operations (cron job)
+ */
+export const cleanup = onRequest(
+  {
+    memory: '512MiB',
+    timeoutSeconds: 300,
+  },
+  async (req, res) => {
+    try {
+      // In production, add authentication/cron validation
+      logger.info('Starting cleanup operations');
+
+      const [deletedJobs, deletedFiles] = await Promise.all([
+        firestoreService.deleteOldJobs(30), // Delete jobs older than 30 days
+        storageService.cleanupOldFiles(7), // Delete files older than 7 days
+      ]);
+
+      res.json({
+        success: true,
+        deletedJobs,
+        deletedFiles,
+        message: `Cleanup completed: ${deletedJobs} jobs, ${deletedFiles} files deleted`,
+      });
+    } catch (error) {
+      logger.error('Cleanup operation failed', error as Error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+);
+
+/**
+ * Health check endpoint
+ */
+export const health = onRequest(async (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '2.0.0',
+    services: {
+      firestore: 'connected',
+      storage: 'connected',
+      pdf: 'initialized',
+    },
+  });
+});
+
+/**
+ * Demo function to generate a PDF report directly with demo data
+ */
+export const demoReport = onRequest(
+  {
+    memory: '1GiB',
+    timeoutSeconds: 60,
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      // const reportType = (req.query.type as string) || 'Partnership';
+      const reportType = 'Partnership';
+
+      if (
+        !['A', 'B', 'C', 'D', 'Content', 'Partnership'].includes(reportType)
+      ) {
+        res.status(400).json({
+          error: 'Invalid report type. Use A, B, C, D, Content, or Partnership',
+        });
+        return;
+      }
+
+      logger.info(`Generating demo report type: ${reportType}`);
+
+      // Generate demo data
+      const { generateMockData } = await import('./data.js');
+      const mockData = generateMockData(
+        reportType as 'A' | 'B' | 'C' | 'D' | 'Content' | 'Partnership'
+      );
+
+      // Wrap the data in ReportData format
+      const reportData = {
+        title: `Professional ${reportType} Report`,
+        subtitle: 'Generated by BrandLight Advanced PDF Service',
+        author: 'System Administrator',
+        date: new Date().toISOString(),
+        data: mockData,
+      };
+
+      // Generate PDF directly
+      const pdfBuffer = await pdfService.generateReportPDF(
+        reportType as 'A' | 'B' | 'C' | 'D' | 'Content' | 'Partnership',
+        reportData,
+        {
+          includeCharts: true,
+          // watermark: 'DEMO',
+        }
+      );
+
+      // Upload PDF to Firebase Storage
+      const fileName = `demo-report-${reportType}-${Date.now()}.pdf`;
+      const downloadUrl = await storageService.uploadPDF(pdfBuffer, fileName, {
+        reportType,
+        generatedAt: new Date().toISOString(),
+        isDemo: 'true',
+      });
+
+      // Return the download URL
+      res.json({
+        success: true,
+        reportType,
+        downloadUrl,
+        fileName,
+        message: `Demo report ${reportType} generated successfully`,
+        dataPoints: mockData.domains?.length || mockData.data?.length || 0,
+      });
+
+      logger.info(`Demo report uploaded successfully: ${reportType}`, {
+        fileName,
+        downloadUrl,
+      });
+    } catch (error) {
+      logger.error('Failed to generate demo report', error as Error);
+      res.status(500).json({
+        error: 'Failed to generate demo report',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+);
+
+// Helper functions
+
+async function enqueueBackgroundTask(
+  jobId: string,
+  request: CreateJobRequest
+): Promise<void> {
+  try {
+    const projectId =
+      process.env.GCLOUD_PROJECT ||
+      process.env.FIREBASE_PROJECT_ID ||
+      'brandlight-project';
+    const region = config.functions.region;
+    const isEmulator =
+      process.env.FUNCTIONS_EMULATOR || process.env.FIREBASE_EMULATOR_HUB;
+
+    const baseUrl = isEmulator
+      ? `http://127.0.0.1:5001/${projectId}/${region}/processReportJob`
+      : `https://${region}-${projectId}.cloudfunctions.net/processReportJob`;
+
+    logger.info(`Enqueueing background task: ${baseUrl}`, { jobId });
+
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId, request }),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to enqueue task: ${response.status} ${response.statusText}`
+      );
+    }
+
+    logger.info('Background task enqueued successfully', { jobId });
+  } catch (error) {
+    logger.error('Failed to enqueue background task', error as Error, {
+      jobId,
+    });
+
+    // Update job status to failed if enqueueing fails
+    await firestoreService.updateJob(jobId, {
+      status: 'failed',
+      error: `Failed to enqueue background task: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
+    });
+
+    throw error;
+  }
+}
+
+function getStatusMessage(status: Job['status']): string {
+  const messages = {
+    pending: 'Job is waiting to be processed',
+    processing: 'Report is being generated',
+    completed: 'Report has been generated successfully',
+    failed: 'Report generation failed',
+  };
+  return messages[status];
+}
