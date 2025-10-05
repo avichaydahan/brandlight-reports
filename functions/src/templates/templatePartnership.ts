@@ -6,7 +6,7 @@ import {
   SummaryCards,
   DonutChart,
   BarChart,
-  DataTable,
+  DomainList,
   getBaseStyles,
 } from '../components/index.js';
 
@@ -61,22 +61,6 @@ export function generateTemplate(data: PartnershipReportData): string {
     value: domain.influenceScore,
   }));
 
-  const tableColumns = [
-    { key: 'name', label: 'Domain name', width: '15%' },
-    { key: 'influenceScore', label: 'Influence score', width: '10%' },
-    { key: 'citationFrequency', label: 'Citation frequency', width: '12%' },
-    { key: 'change', label: 'Change', width: '8%' },
-    { key: 'estMonthlyVisits', label: 'Est. monthly visits', width: '12%' },
-    { key: 'citationsToVisits', label: 'Citations to visits %', width: '12%' },
-    {
-      key: 'sourcesMentioningBrand',
-      label: 'Sources mentioning my brand',
-      width: '15%',
-    },
-    { key: 'domainType', label: 'Domain type', width: '10%' },
-    { key: 'categories', label: 'Categories', width: '15%' },
-  ];
-
   // Format the current date for "Date issued"
   const currentDate = new Date();
   const dateIssued = currentDate.toLocaleDateString('en-US', {
@@ -130,13 +114,35 @@ export function generateTemplate(data: PartnershipReportData): string {
         data: donutChartData,
       })}
     </div>
+    </div>
+  </div>
+
+  <!-- Domains section starts on third page -->
+  <div class="content-page">
+    <!-- Header for domains pages -->
+    ${RunningHeader({
+      title: 'Partnership domains report',
+      timeperiod,
+      engines,
+      category,
+    })}
     
-    ${DataTable({
-      title: 'All domains',
+    ${DomainList({
       totalCount: domains.length,
-      columns: tableColumns,
-      data: domains,
-      maxRows: 20,
+      data: domains.slice(0, 20).map((domain) => ({
+        name: domain.name,
+        influenceScore: domain.influenceScore,
+        citationFrequency: domain.citationFrequency?.toString() || '0',
+        change: domain.change || 0,
+        monthlyVisits: domain.estMonthlyVisits?.toString() || '0',
+        citationsToVisits: domain.citationsToVisits || 0,
+        brandMentions: domain.sourcesMentioningBrand || 0,
+        competitorMentions: 0, // Add this field to your data if needed
+        domainType: domain.domainType || 'Unknown',
+        categories: Array.isArray(domain.categories)
+          ? domain.categories.join(', ')
+          : domain.categories || 'Unknown',
+      })),
     })}
   </div>
 </body>

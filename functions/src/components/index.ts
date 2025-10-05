@@ -11,6 +11,10 @@ export {
 } from './summaryCards.js';
 export { DonutChart, type DonutChartProps } from './donutChart.js';
 export { BarChart, type BarChartProps } from './barChart.js';
-export { DataTable, type DataTableProps } from './dataTable.js';
+export {
+  DomainList,
+  type DomainListProps,
+  type DomainData,
+} from './dataTable.js';
 export { getBaseStyles } from './styles.js';
 export { PageSection, type PageSectionProps } from './pageSection.js';

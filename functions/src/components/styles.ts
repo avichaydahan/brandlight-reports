@@ -12,6 +12,16 @@ export function getBaseStyles(): string {
         line-height: 1.6;
         color: #333;
         background: #fff;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      
+      html {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100%;
       }
       
       /* Cover Page Styles */
@@ -231,9 +241,10 @@ export function getBaseStyles(): string {
       
       /* Chart Styles */
       .charts-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
+        flex-direction: column;
         gap: 40px;
+        margin-top: 40px;
         margin-bottom: 40px;
       }
       
@@ -460,7 +471,6 @@ export function getBaseStyles(): string {
         left: 0;
         right: 0;
         background: white;
-        border-bottom: 1px solid #e5e5e5;
         padding: 15px 40px;
         z-index: 1000;
         display: none; /* Hidden by default */
@@ -524,7 +534,6 @@ export function getBaseStyles(): string {
         justify-content: space-between;
         align-items: center;
         font-size: 14px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         z-index: 1000;
       }
 
@@ -583,7 +592,22 @@ export function getBaseStyles(): string {
       /* Page setup - no margins for full-width header/footer */
       @page {
         size: A4;
-        margin: 0;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      /* Additional fixes for white space */
+      .running-footer {
+        margin: 0 !important;
+        padding: 15px 40px !important;
+        box-sizing: border-box;
+      }
+      
+      /* Ensure no gaps */
+      .cover-page, .content-page {
+        margin: 0 !important;
+        border: none !important;
+        outline: none !important;
       }
     </style>
   `;

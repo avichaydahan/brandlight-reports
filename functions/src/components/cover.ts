@@ -514,14 +514,14 @@ export function Cover({ timeperiod, dateIssued }: CoverProps): string {
       <!-- Timeperiod text overlay -->
       ${
         timeperiod
-          ? `<div style="position: absolute; top: 49%; left: 10%; z-index: 2; color: white; font-size: 18px; text-align: center; font-family: 'DM Sans', sans-serif;">${timeperiod}</div>`
+          ? `<div style="position: absolute; top: 49%; left: 9.7%; z-index: 2; color: white; font-size: 18px; text-align: center; font-family: 'DM Sans', sans-serif;">${timeperiod}</div>`
           : ''
       }
 
       <!-- Date issued text overlay -->
       ${
         dateIssued
-          ? `<div style="position: absolute; top: 82%; left: 10%; z-index: 2; color: white; font-size: 18px; text-align: center; font-family: 'DM Sans', sans-serif;">Date issued: ${dateIssued}</div>`
+          ? `<div style="position: absolute; top: 82%; left: 9.7%; z-index: 2; color: white; font-size: 18px; text-align: center; font-family: 'DM Sans', sans-serif;">Date issued: ${dateIssued}</div>`
           : ''
       }
     </div>
