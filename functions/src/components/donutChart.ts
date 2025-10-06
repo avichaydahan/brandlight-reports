@@ -53,13 +53,13 @@ export function DonutChart({ data }: DonutChartProps): string {
   const chartData = data && data.length > 0 ? data : defaultData;
 
   return `
-<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px;">
-  <p style="align-self: stretch; flex-grow: 0; flex-shrink: 0; width: 100%; font-size: 14px; font-weight: 600; text-align: left; color: #333643;">
+<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 24px;">
+  <p style="align-self: stretch; flex-grow: 0; flex-shrink: 0; width: 100%; font-size: 16px; font-weight: 600; text-align: left; color: #333643;">
     Influence % by domain type
   </p>
   <div style="display: flex; justify-content: space-between; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative;">
-    <div style="flex-grow: 0; flex-shrink: 0; width: 176px; height: 176px; position: relative;">
-      <svg width="168" height="168" viewBox="0 0 168 168" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 152px; height: 152px; position: absolute; left: 12px; top: 12px;" preserveAspectRatio="none">
+    <div style="flex-grow: 0; flex-shrink: 0; width: 242px; height: 242px; position: relative;">
+      <svg width="232" height="232" viewBox="0 0 168 168" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 232px; height: 232px; position: absolute; left: 12px; top: 12px;" preserveAspectRatio="none">
         <path d="M84 8C95.9936 8 107.817 10.8385 118.503 16.2835C129.19 21.7285 138.436 29.6253 145.485 39.3283" stroke="#3A5AFE" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
         <path d="M153.984 54.3649C158.346 64.6666 160.38 75.8044 159.941 86.9831C159.502 98.1617 156.601 109.106 151.444 119.033C146.287 128.961 139.002 137.628 130.108 144.415C121.215 151.203 110.933 155.943 99.9966 158.298" stroke="#7FE1D8" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
         <path d="M79.6831 159.877C73.318 159.515 67.0238 158.354 60.9488 156.42" stroke="#9D84FE" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -67,12 +67,14 @@ export function DonutChart({ data }: DonutChartProps): string {
         <path d="M17.1542 47.8366C22.1536 38.5956 29.0147 30.4917 37.3044 24.0364C45.594 17.5812 55.1321 12.9148 65.3163 10.3321" stroke="#EBECF1" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
         <path d="M16.8308 119.559C8.04892 102.971 5.71604 83.7195 10.2815 65.5138" stroke="#FFD166" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
-      <p style="position: absolute; left: 43.5px; top: 102px; font-size: 12px; text-align: center; color: #666976;">
-        16,569 domains
-      </p>
-      <p style="position: absolute; left: 49px; top: 60px; font-size: 36px; font-weight: 600; text-align: center; color: #0c1233;">
-        96%
-      </p>
+      <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 0;">
+        <div style="font-size: 52px; font-weight: 600; text-align: center; color: #0c1233;">
+          96%
+        </div>
+        <div style="font-size: 18px; text-align: center; color: #666976;">
+          16,569 domains
+        </div>
+      </div>
     </div>
     <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 258px; gap: 6px;">
       ${chartData

@@ -49,7 +49,7 @@ export function generateTemplate(data: PartnershipReportData): string {
     ([category, data], index) => ({
       category,
       percentage: data.percentage,
-      domains: data.domains,
+      domains: data.domains.toString(),
       color: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6b7280'][
         index % 6
       ],
@@ -59,6 +59,7 @@ export function generateTemplate(data: PartnershipReportData): string {
   const barChartData = topDomains.map((domain) => ({
     name: domain.name.split('.')[0],
     value: domain.influenceScore,
+    icon: domain.name.charAt(0).toUpperCase(),
   }));
 
   // Format the current date for "Date issued"
@@ -102,18 +103,12 @@ export function generateTemplate(data: PartnershipReportData): string {
     
     <div class="charts-section">
       ${BarChart({
-        title: 'Domains by influence score',
         data: barChartData,
       })}
       
       ${DonutChart({
-        title: 'Influence % by domain type',
-        centerValue: '96%',
-        centerSubtext:
-          '${summary.totalDomainsAnalyzed.toLocaleString()} domains',
         data: donutChartData,
       })}
-    </div>
     </div>
   </div>
 
@@ -132,9 +127,9 @@ export function generateTemplate(data: PartnershipReportData): string {
       data: domains.slice(0, 20).map((domain) => ({
         name: domain.name,
         influenceScore: domain.influenceScore,
-        citationFrequency: domain.citationFrequency?.toString() || '0',
+        citationFrequency: `${domain.citationFrequency.toFixed(1)}k`,
         change: domain.change || 0,
-        monthlyVisits: domain.estMonthlyVisits?.toString() || '0',
+        monthlyVisits: domain.estMonthlyVisits || '0',
         citationsToVisits: domain.citationsToVisits || 0,
         brandMentions: domain.sourcesMentioningBrand || 0,
         competitorMentions: 0, // Add this field to your data if needed
