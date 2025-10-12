@@ -25,7 +25,7 @@ export function RunningHeader({
           style="display: flex; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; height: 20px; position: relative; gap: 8px;"
         >
           <p
-            style="flex-grow: 1; width: 270px; font-size: 18px; font-weight: 700; text-align: left; color: #333643;"
+            style="flex-grow: 1; width: 270px; font-size: 20px; font-weight: 700; text-align: left; color: #333643;"
           >
             ${title}
           </p>

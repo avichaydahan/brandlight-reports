@@ -14,13 +14,13 @@ export interface SummaryCardsProps {
 export function SummaryCards(props: SummaryCardsProps): string {
   return `
     <div
-      style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 16px;"
+      style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 8px; margin-top: 40px;"
     >
       <div
         style="display: flex; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0;"
       >
         <h2
-          style="flex-grow: 1; width: 100%; font-size: 24px; font-weight: 600; text-align: left; color: #333643; margin: 0; padding: 0;"
+          style="flex-grow: 1; width: 100%; font-size: 20px; font-weight: 600; text-align: left; color: #333643; margin: 0; padding: 0;"
         >
           Summary
         </h2>

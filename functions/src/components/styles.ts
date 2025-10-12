@@ -507,7 +507,7 @@ export function getBaseStyles(): string {
       
       /* Adjust content to account for running header and footer */
       .content-page {
-        padding: 240px 40px 80px 40px; /* Top space for header, sides for content, bottom for footer */
+        padding: 80px 40px 80px 40px; /* Top space for header, sides for content, bottom for footer */
         min-height: 100vh; /* Full viewport height */
       }
       
