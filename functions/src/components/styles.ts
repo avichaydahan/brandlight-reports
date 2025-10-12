@@ -471,7 +471,7 @@ export function getBaseStyles(): string {
         left: 0;
         right: 0;
         background: white;
-        padding: 15px 40px;
+        padding: 24px 40px;
         z-index: 1000;
         display: none; /* Hidden by default */
       }
@@ -507,7 +507,7 @@ export function getBaseStyles(): string {
       
       /* Adjust content to account for running header and footer */
       .content-page {
-        padding: 100px 40px 80px 40px; /* Top space for header, sides for content, bottom for footer */
+        padding: 240px 40px 80px 40px; /* Top space for header, sides for content, bottom for footer */
         min-height: 100vh; /* Full viewport height */
       }
       

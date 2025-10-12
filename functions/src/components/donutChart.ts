@@ -67,11 +67,11 @@ export function DonutChart({ data }: DonutChartProps): string {
         <path d="M17.1542 47.8366C22.1536 38.5956 29.0147 30.4917 37.3044 24.0364C45.594 17.5812 55.1321 12.9148 65.3163 10.3321" stroke="#EBECF1" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
         <path d="M16.8308 119.559C8.04892 102.971 5.71604 83.7195 10.2815 65.5138" stroke="#FFD166" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
-      <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 0;">
+      <div style="position: absolute; left: 50%; top: 50%; transform: translate(-42%, -50%); display: flex; flex-direction: column; gap: 0;">
         <div style="font-size: 52px; font-weight: 600; text-align: center; color: #0c1233;">
           96%
         </div>
-        <div style="font-size: 18px; text-align: center; color: #666976;">
+        <div style="font-size: 15px; text-align: center; color: #666976; margin-top: -8px;">
           16,569 domains
         </div>
       </div>
@@ -91,18 +91,18 @@ export function DonutChart({ data }: DonutChartProps): string {
           };"></div>
         </div>
         <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 1; position: relative; gap: 4px;">
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: left; color: #333643;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 14px; text-align: left; color: #333643;">
             ${item.category}
           </p>
         </div>
         <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; position: relative; gap: 6px;">
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 14px; font-weight: 600; text-align: right; color: #333643;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 16px; font-weight: 600; text-align: right; color: #333643;">
             ${item.percentage}%
           </p>
           <svg width="3" height="4" viewBox="0 0 3 4" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-grow: 0; flex-shrink: 0;" preserveAspectRatio="none">
             <circle cx="1.92737" cy="2" r="1.07263" fill="#666976"></circle>
           </svg>
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: right; color: #333643;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 14px; text-align: right; color: #333643;">
             ${item.domains}
           </p>
         </div>

@@ -88,7 +88,7 @@ export function DomainList({
 
   // Split domains into pages to avoid page breaks
   // Assuming approximately 6-8 domain items per page to avoid cutting
-  const itemsPerPage = 6;
+  const itemsPerPage = 5;
   const pages: DomainData[][] = [];
 
   for (let i = 0; i < domains.length; i += itemsPerPage) {
@@ -96,7 +96,7 @@ export function DomainList({
   }
 
   const renderDomainItem = (domain: DomainData) => `
-    <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; overflow: hidden; gap: 4px; padding: 12px; border-radius: 12px; background: #fff; border: 1px solid #ebecf1; page-break-inside: avoid; margin-bottom: 8px;">
+    <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; overflow: hidden; gap: 4px; padding: 12px; border-radius: 12px; background: #fff; border: 1px solid #ebecf1; page-break-inside: avoid; margin-bottom: 8px; padding-top: 24px">
       <div style="display: flex; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 12px;">
         <div style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; border-radius: 16px; background: #d8deff;"></div>
         <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 1; position: relative;">
@@ -106,7 +106,7 @@ export function DomainList({
         </div>
       </div>
       <!-- First row of metrics -->
-      <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; width: 100%; position: relative; gap: 4px; flex-wrap: nowrap; overflow: hidden;">
+      <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; width: 100%; position: relative; gap: 4px; flex-wrap: wrap;">
         <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; position: relative; gap: 2px;">
           <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: left; color: #666976;">
             Influence score:
@@ -153,7 +153,7 @@ export function DomainList({
         </div>
       </div>
       <!-- Second row of metrics -->
-      <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; width: 100%; position: relative; gap: 4px; flex-wrap: nowrap; overflow: hidden;">
+      <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; width: 100%; position: relative; gap: 4px; flex-wrap: wrap;">
         <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; position: relative; gap: 2px;">
           <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: left; color: #666976;">
             Citations to visits %:
@@ -212,22 +212,22 @@ export function DomainList({
     .map(
       (pageDomains, pageIndex) => `
     ${
-      pageIndex === 99
+      pageIndex === 0
         ? `
-      <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; margin-top: 40px;">
-        <p style="flex-grow: 0; flex-shrink: 0; width: 100%; font-size: 14px; font-weight: 600; text-align: left; color: #333643;">
-          All domains (${totalCount.toLocaleString()})
-        </p>
-        ${pageDomains.map(renderDomainItem).join('')}
-      </div>
-    `
+          <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; margin-top: 40px;">
+            <p style="flex-grow: 0; flex-shrink: 0; width: 100%; font-size: 14px; font-weight: 600; text-align: left; color: #333643;">
+              All domains (${totalCount.toLocaleString()})
+            </p>
+            ${pageDomains.map(renderDomainItem).join('')}
+          </div>
+        `
         : `
-      <div style="page-break-before: always; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; padding-top: 140px;">
-        ${pageDomains.map(renderDomainItem).join('')}
-      </div>
-    `
+          <div style="page-break-before: always; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; padding-top: 140px;">
+            ${pageDomains.map(renderDomainItem).join('')}
+          </div>
+        `
     }
-  `
+      `
     )
     .join('');
 }

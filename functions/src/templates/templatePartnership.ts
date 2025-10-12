@@ -98,6 +98,7 @@ export function generateTemplate(data: PartnershipReportData): string {
       timeperiod,
       engines,
       category,
+      pageInfo: 'Page 2 of 3',
     })}
     ${SummaryCards({ cards: summaryCardsData })}
     
@@ -120,6 +121,7 @@ export function generateTemplate(data: PartnershipReportData): string {
       timeperiod,
       engines,
       category,
+      pageInfo: 'Page 3 of 3',
     })}
     
     ${DomainList({

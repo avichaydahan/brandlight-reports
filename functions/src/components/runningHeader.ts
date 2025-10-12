@@ -1,32 +1,35 @@
 export interface RunningHeaderProps {
   title: string;
-  pageInfo?: string;
   timeperiod?: string;
-  engines?: string;
+  engines?: string[];
   category?: string;
+  pageInfo?: string;
 }
 
 export function RunningHeader({
   title,
-  pageInfo = 'Page 1 of 3',
   timeperiod,
-  engines = 'All',
-  category = 'All',
+  engines,
+  category,
+  pageInfo,
 }: RunningHeaderProps): string {
+  // Format engines array into a readable string
+  const enginesText = engines ? engines.join(', ') : '';
+
   return `
     <div class="running-header" style="z-index: 998;">
       <div
-        style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; gap: 8px;"
+        style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; gap: 16px;"
       >
         <div
           style="display: flex; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; height: 20px; position: relative; gap: 8px;"
         >
           <p
-            style="flex-grow: 1; width: 270px; font-size: 16px; font-weight: 700; text-align: left; color: #333643;"
+            style="flex-grow: 1; width: 270px; font-size: 18px; font-weight: 700; text-align: left; color: #333643;"
           >
             ${title}
           </p>
-          <p style="flex-grow: 1; width: 270px; font-size: 12px; text-align: right; color: #333643;">
+          <p style="flex-grow: 1; width: 270px; font-size: 14px; text-align: right; color: #333643;">
             ${pageInfo}
           </p>
         </div>
@@ -49,7 +52,7 @@ export function RunningHeader({
                   style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; padding-left: 6px; padding-right: 6px;"
                 >
                   <p
-                    style="flex-grow: 0; flex-shrink: 0; font-size: 13px; text-align: left; color: rgba(0,0,0,0.87);"
+                    style="flex-grow: 0; flex-shrink: 0; font-size: 16px; text-align: left; color: rgba(0,0,0,0.87);"
                   >
                     Time period: ${timeperiod}
                   </p>
@@ -65,9 +68,9 @@ export function RunningHeader({
                   style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; padding-left: 6px; padding-right: 6px;"
                 >
                   <p
-                    style="flex-grow: 0; flex-shrink: 0; font-size: 13px; text-align: left; color: rgba(0,0,0,0.87);"
+                    style="flex-grow: 0; flex-shrink: 0; font-size: 16px; text-align: left; color: rgba(0,0,0,0.87);"
                   >
-                    Engines: ${engines}
+                    Engines: ${enginesText}
                   </p>
                 </div>
               </div>
@@ -78,7 +81,7 @@ export function RunningHeader({
                   style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; padding-left: 6px; padding-right: 6px;"
                 >
                   <p
-                    style="flex-grow: 0; flex-shrink: 0; font-size: 13px; text-align: left; color: rgba(0,0,0,0.87);"
+                    style="flex-grow: 0; flex-shrink: 0; font-size: 16px; text-align: left; color: rgba(0,0,0,0.87);"
                   >
                     Category: ${category}
                   </p>

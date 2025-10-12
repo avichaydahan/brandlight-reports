@@ -11,32 +11,22 @@ export interface SummaryCardsProps {
   cards: SummaryCardProps[];
 }
 
-export function SummaryCards(p0: {
-  cards: (
-    | {
-        label: string;
-        value: string;
-        isHighlight?: undefined;
-        icon?: undefined;
-      }
-    | { label: string; value: string; isHighlight: boolean; icon: string }
-  )[];
-}): string {
+export function SummaryCards(props: SummaryCardsProps): string {
   return `
     <div
-      style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 8px;"
+      style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 16px;"
     >
       <div
-        style="display: flex; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px;"
+        style="display: flex; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0;"
       >
-        <p
-          style="flex-grow: 1; width: 554px; font-size: 16px; font-weight: 600; text-align: left; color: #333643;"
+        <h2
+          style="flex-grow: 1; width: 100%; font-size: 24px; font-weight: 600; text-align: left; color: #333643; margin: 0; padding: 0;"
         >
           Summary
-        </p>
+        </h2>
       </div>
       <div
-        style="display: flex; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 8px;"
+        style="display: flex; justify-content: space-between; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 16px;"
       >
         ${generateSummaryCard({
           label: 'Total domains analyzed',
@@ -64,48 +54,40 @@ function generateSummaryCard(config: any): string {
   if (config.type === 'total') {
     return `
       <div
-        style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 1; overflow: hidden; gap: 4px; padding: 12px; border-radius: 8px; background: #fff; border-width: 1px; border-color: #ebecf1; border-style: solid;"
+        style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; flex: 1; height: 84px; overflow: hidden; padding: 12px; border-radius: 8px; background: #fff; border-width: 1px; border-color: #ebecf1; border-style: solid;"
       >
         <div
-          style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; position: relative; gap: 4px;"
+          style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; height: 16px;"
         >
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: left; color: #0c1233;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: left; color: #0c1233; margin: 0; line-height: 16px;">
             ${config.label}
           </p>
         </div>
         <div
-          style="display: flex; justify-content: flex-start; align-items: flex-end; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 10px;"
+          style="display: flex; justify-content: flex-start; align-items: flex-end; align-self: stretch; flex-grow: 1;"
         >
-          <div
-            style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 1; gap: 2px;"
+          <p
+            style="align-self: stretch; flex-grow: 0; flex-shrink: 0; font-size: 24px; font-weight: 600; text-align: left; color: #0c1233; margin: 0; display: flex; align-items: flex-end;"
           >
-            <div
-              style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 4px;"
-            >
-              <p
-                style="align-self: stretch; flex-grow: 0; flex-shrink: 0; width: 152px; font-size: 24px; font-weight: 600; text-align: left; color: #0c1233;"
-              >
-                ${config.value}
-              </p>
-            </div>
-          </div>
+            ${config.value}
+          </p>
         </div>
       </div>
     `;
   } else {
     return `
       <div
-        style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 181px; overflow: hidden; gap: 4px; padding: 12px; border-radius: 8px; background: #fff; border-width: 1px; border-color: #ebecf1; border-style: solid;"
+        style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; flex: 1; height: 84px; overflow: hidden; padding: 12px; border-radius: 8px; background: #fff; border-width: 1px; border-color: #ebecf1; border-style: solid;"
       >
         <div
-          style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; position: relative; gap: 4px;"
+          style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; height: 16px;"
         >
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: left; color: #0c1233;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 12px; text-align: left; color: #0c1233; margin: 0; line-height: 16px;">
             ${config.label}
           </p>
         </div>
         <div
-          style="display: flex; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; height: 32px; position: relative; gap: 8px; background: #fff;"
+          style="display: flex; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 1; gap: 8px;"
         >
           <div
             style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; overflow: hidden; border-radius: ${
@@ -119,7 +101,7 @@ function generateSummaryCard(config: any): string {
             ></div>
           </div>
           <p
-            style="flex-grow: 1; width: 125px; font-size: 14px; font-weight: 500; text-align: left; color: #0c1233;"
+            style="flex-grow: 1; font-size: 14px; font-weight: 500; text-align: left; color: #0c1233; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0;"
           >
             ${config.domain}
           </p>

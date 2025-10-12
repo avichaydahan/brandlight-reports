@@ -35,7 +35,7 @@ export function BarChart({ data }: BarChartProps): string {
     <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative;">
       
       <!-- Chart area with bars -->
-      <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; height: 242px;">
+      <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; height: 232px;">
         <!-- Grid lines -->
         <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; height: 200px; position: absolute; top: 0; left: 0; right: 0;">
           <div style="height: 1px; width: 100%; background: #F0F1F5;"></div>

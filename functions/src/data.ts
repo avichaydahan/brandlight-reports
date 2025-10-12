@@ -7,29 +7,31 @@ export interface PartnershipDomainData {
   name: string;
   influenceScore: number;
   citationFrequency: number;
-  change: number;
-  estMonthlyVisits: string;
-  citationsToVisits: number;
-  sourcesMentioningBrand: number;
-  domainType: string;
-  categories: string[];
+  change?: number;
+  estMonthlyVisits?: string;
+  citationsToVisits?: number;
+  sourcesMentioningBrand?: number;
+  domainType?: string;
+  categories?: string | string[];
+}
+
+export interface DomainTypeInfluence {
+  percentage: number;
+  domains: number;
+}
+
+export interface PartnershipSummary {
+  totalDomainsAnalyzed: number;
+  topOpportunity: string;
+  mostInfluentialDomain: string;
 }
 
 export interface PartnershipReportData {
   timeperiod: string;
-  engines: string;
+  engines: string[];
   category: string;
-  summary: {
-    totalDomainsAnalyzed: number;
-    topOpportunity: string;
-    mostInfluentialDomain: string;
-  };
-  influenceByDomainType: {
-    [key: string]: {
-      percentage: number;
-      domains: number;
-    };
-  };
+  summary: PartnershipSummary;
+  influenceByDomainType: Record<string, DomainTypeInfluence>;
   domains: PartnershipDomainData[];
 }
 
@@ -231,7 +233,7 @@ export function generatePartnershipDomainsData(): PartnershipReportData {
 
   return {
     timeperiod: 'Jul 30, 2025 - Aug 30, 2025',
-    engines: 'All',
+    engines: ['All'],
     category: 'All',
     summary: {
       totalDomainsAnalyzed: 16569,
