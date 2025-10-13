@@ -86,9 +86,6 @@ export function generateTemplate(data: PartnershipReportData): string {
     day: 'numeric',
   });
 
-  // Calculate total pages dynamically
-  const totalPages = 3; // Cover + Summary/Charts + Domains
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

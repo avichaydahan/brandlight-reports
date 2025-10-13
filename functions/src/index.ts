@@ -145,22 +145,6 @@ export const getJobStats = onCall(
 );
 
 /**
- * Health check endpoint
- */
-export const health = onRequest(async (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    version: '2.0.0',
-    services: {
-      firestore: 'connected',
-      storage: 'connected',
-      pdf: 'initialized',
-    },
-  });
-});
-
-/**
  * Demo function to generate a PDF report directly with demo data
  */
 export const demoReport = onRequest(
@@ -243,7 +227,6 @@ export const demoReport = onRequest(
 );
 
 // Helper functions
-
 async function enqueueBackgroundTask(
   jobId: string,
   request: CreateJobRequest
