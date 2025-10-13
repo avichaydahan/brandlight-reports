@@ -64,17 +64,14 @@ export function BarChart({ data }: BarChartProps): string {
       <div style="display: flex; justify-content: space-around; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; margin-top: 0px;">
         ${chartData
           .map((item) => {
-            // Extract favicon URL from icon (assuming icon contains the domain name)
-            const faviconUrl = `https://www.google.com/s2/favicons?domain=${item.icon}&sz=64`;
+            // Extract favicon URL from icon (using standard size for better compatibility)
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${item.icon}`;
             return `
         <div style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; overflow: hidden; border-radius: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
           <img 
             src="${faviconUrl}" 
-            alt="${item.name} favicon" 
-            style="width: 16px; height: 16px; object-fit: contain;"
-            onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'font-size: 10px; font-weight: bold; color: #666;\\'>${item.name.charAt(
-              0
-            )}</span>';"
+            alt="${item.name}" 
+            style="width: 16px; height: 16px; object-fit: contain; display: block;"
           />
         </div>
         `;

@@ -23,7 +23,7 @@ export function RunningHeader({
           style="display: flex; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; height: 20px; position: relative; gap: 8px;"
         >
           <p
-            style="flex-grow: 1; width: 270px; font-size: 20px; font-weight: 700; text-align: left; color: #333643;"
+            style="flex-grow: 1; width: 100%; font-size: 20px; font-weight: 700; text-align: left; color: #333643;"
           >
             ${title || ''}
           </p>
@@ -32,7 +32,7 @@ export function RunningHeader({
           timeperiod || engines || category
             ? `
         <div
-          style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 548px; gap: 8px;"
+          style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; gap: 8px;"
         >
           <div
             style="display: flex; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 10px;"

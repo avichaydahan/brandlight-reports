@@ -159,114 +159,214 @@ export const mockPartnershipData: PartnershipReportData = {
 /**
  * Helper function to generate additional realistic domain data
  * This simulates what your API would return for pagination or large datasets
+ * Uses only real domains without numerical suffixes
  */
 function generateAdditionalDomains(count: number) {
-  const domainBases = [
+  const realDomains = [
     {
-      name: 'techcrunch',
+      name: 'techcrunch.com',
       type: 'Technology, News',
       categories: ['Technology', 'Startups', 'News'],
     },
     {
-      name: 'forbes',
+      name: 'forbes.com',
       type: 'Business, Finance',
       categories: ['Business', 'Finance', 'Leadership'],
     },
     {
-      name: 'reuters',
+      name: 'reuters.com',
       type: 'News & Media',
       categories: ['News', 'Global', 'Finance'],
     },
     {
-      name: 'theverge',
+      name: 'theverge.com',
       type: 'Technology',
       categories: ['Technology', 'Consumer Electronics', 'Reviews'],
     },
     {
-      name: 'engadget',
+      name: 'engadget.com',
       type: 'Technology',
       categories: ['Technology', 'Gadgets', 'Reviews'],
     },
     {
-      name: 'wired',
+      name: 'wired.com',
       type: 'Technology, News',
       categories: ['Technology', 'Culture', 'Science'],
     },
     {
-      name: 'arstechnica',
+      name: 'arstechnica.com',
       type: 'Technology',
       categories: ['Technology', 'Science', 'Policy'],
     },
     {
-      name: 'mashable',
+      name: 'mashable.com',
       type: 'Social Media, Technology',
       categories: ['Technology', 'Social Media', 'Entertainment'],
     },
     {
-      name: 'techradar',
+      name: 'techradar.com',
       type: 'Technology',
       categories: ['Technology', 'Reviews', 'How-to'],
     },
     {
-      name: 'cnet',
+      name: 'cnet.com',
       type: 'Technology',
       categories: ['Technology', 'Reviews', 'News'],
     },
     {
-      name: 'zdnet',
+      name: 'zdnet.com',
       type: 'Technology, Business',
       categories: ['Technology', 'Enterprise', 'Business'],
     },
     {
-      name: 'venturebeat',
+      name: 'venturebeat.com',
       type: 'Technology, Business',
       categories: ['Technology', 'AI', 'Gaming'],
     },
     {
-      name: 'businessinsider',
+      name: 'businessinsider.com',
       type: 'Business, Finance',
       categories: ['Business', 'Finance', 'Technology'],
     },
     {
-      name: 'fortune',
+      name: 'fortune.com',
       type: 'Business, Finance',
       categories: ['Business', 'Fortune 500', 'Leadership'],
     },
     {
-      name: 'entrepreneur',
+      name: 'entrepreneur.com',
       type: 'Business',
       categories: ['Business', 'Startups', 'Leadership'],
     },
     {
-      name: 'inc',
+      name: 'inc.com',
       type: 'Business',
       categories: ['Business', 'Startups', 'Growth'],
     },
     {
-      name: 'fastcompany',
+      name: 'fastcompany.com',
       type: 'Business, Technology',
       categories: ['Business', 'Innovation', 'Design'],
     },
     {
-      name: 'hbr',
+      name: 'hbr.org',
       type: 'Business, Education',
       categories: ['Business', 'Leadership', 'Management'],
     },
     {
-      name: 'economist',
+      name: 'economist.com',
       type: 'News & Media, Finance',
       categories: ['Economics', 'Politics', 'Business'],
     },
     {
-      name: 'nytimes',
+      name: 'nytimes.com',
       type: 'News & Media',
       categories: ['News', 'Politics', 'Culture'],
+    },
+    {
+      name: 'washingtonpost.com',
+      type: 'News & Media',
+      categories: ['News', 'Politics', 'Investigative'],
+    },
+    {
+      name: 'theguardian.com',
+      type: 'News & Media',
+      categories: ['News', 'Global', 'Opinion'],
+    },
+    {
+      name: 'axios.com',
+      type: 'News & Media',
+      categories: ['News', 'Politics', 'Business'],
+    },
+    {
+      name: 'politico.com',
+      type: 'News & Media',
+      categories: ['Politics', 'Policy', 'Government'],
+    },
+    {
+      name: 'yahoo.com',
+      type: 'News & Media, Technology',
+      categories: ['News', 'Finance', 'Entertainment'],
+    },
+    {
+      name: 'npr.org',
+      type: 'News & Media',
+      categories: ['News', 'Culture', 'Radio'],
+    },
+    {
+      name: 'usatoday.com',
+      type: 'News & Media',
+      categories: ['News', 'Sports', 'Entertainment'],
+    },
+    {
+      name: 'cnbc.com',
+      type: 'News & Media, Finance',
+      categories: ['Finance', 'Markets', 'Business'],
+    },
+    {
+      name: 'foxnews.com',
+      type: 'News & Media',
+      categories: ['News', 'Politics', 'Opinion'],
+    },
+    {
+      name: 'latimes.com',
+      type: 'News & Media',
+      categories: ['News', 'California', 'Culture'],
+    },
+    {
+      name: 'time.com',
+      type: 'News & Media',
+      categories: ['News', 'Culture', 'Science'],
+    },
+    {
+      name: 'newsweek.com',
+      type: 'News & Media',
+      categories: ['News', 'Politics', 'Culture'],
+    },
+    {
+      name: 'theatlantic.com',
+      type: 'News & Media',
+      categories: ['News', 'Culture', 'Opinion'],
+    },
+    {
+      name: 'vox.com',
+      type: 'News & Media',
+      categories: ['News', 'Explainers', 'Analysis'],
+    },
+    {
+      name: 'buzzfeed.com',
+      type: 'News & Media',
+      categories: ['News', 'Entertainment', 'Quizzes'],
+    },
+    {
+      name: 'vice.com',
+      type: 'News & Media',
+      categories: ['News', 'Culture', 'Documentary'],
+    },
+    {
+      name: 'slate.com',
+      type: 'News & Media',
+      categories: ['News', 'Opinion', 'Culture'],
+    },
+    {
+      name: 'huffpost.com',
+      type: 'News & Media',
+      categories: ['News', 'Politics', 'Lifestyle'],
+    },
+    {
+      name: 'quartz.com',
+      type: 'Business, News',
+      categories: ['Business', 'Economics', 'Technology'],
+    },
+    {
+      name: 'crunchbase.com',
+      type: 'Business, Technology',
+      categories: ['Startups', 'Funding', 'Business Intelligence'],
     },
   ];
 
   return Array.from({ length: count }, (_, i) => {
-    const baseIndex = i % domainBases.length;
-    const base = domainBases[baseIndex];
+    const domain = realDomains[i % realDomains.length];
     const influenceScore = Math.max(
       15,
       Math.min(95, 50 + (Math.random() - 0.5) * 60)
@@ -279,9 +379,7 @@ function generateAdditionalDomains(count: number) {
     const monthlyVisits = Math.max(1, Math.min(500, 10 + Math.random() * 100));
 
     return {
-      name: `${base.name}${
-        i > domainBases.length ? i - domainBases.length + 1 : ''
-      }.com`,
+      name: domain.name,
       influenceScore: Math.round(influenceScore),
       citationFrequency: Number(citationFreq.toFixed(1)),
       change: Number(changePercent.toFixed(1)),
@@ -295,8 +393,8 @@ function generateAdditionalDomains(count: number) {
       sourcesMentioningBrand: Math.round(
         Math.max(10, Math.min(200, influenceScore * 1.5))
       ),
-      domainType: base.type,
-      categories: base.categories,
+      domainType: domain.type,
+      categories: domain.categories,
     };
   });
 }

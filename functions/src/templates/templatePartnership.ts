@@ -20,28 +20,13 @@ export function generateTemplate(data: PartnershipReportData): string {
     domains,
   } = data;
 
-  // Sort domains by influence score
+  // Sort domains by influence score for the bar chart
   const sortedDomains = [...domains].sort(
     (a, b) => b.influenceScore - a.influenceScore
   );
-
-  // Get most influential domain (highest influence score)
-  const mostInfluential = sortedDomains[0];
-
-  // Get top opportunity (high citations but lower visits - best ROI potential)
-  const topOpportunity =
-    [...domains]
-      .filter((d) => d.citationsToVisits && d.citationsToVisits > 0)
-      .sort(
-        (a, b) => (b.citationsToVisits || 0) - (a.citationsToVisits || 0)
-      )[0] ||
-    sortedDomains[1] ||
-    sortedDomains[0];
-
-  // Sort domains by influence score for the bar chart
   const topDomains = sortedDomains.slice(0, 10);
 
-  // Prepare data for components
+  // Prepare data for components - use summary values directly for consistency
   const summaryCardsData = [
     {
       label: 'Total domains analyzed',
@@ -49,14 +34,14 @@ export function generateTemplate(data: PartnershipReportData): string {
     },
     {
       label: 'Top opportunity',
-      value: topOpportunity?.name || 'N/A',
-      domain: topOpportunity?.name,
+      value: summary.topOpportunity || 'N/A',
+      domain: summary.topOpportunity,
       // favicon will be auto-generated from domain in component
     },
     {
       label: 'Most influential domain',
-      value: mostInfluential?.name || 'N/A',
-      domain: mostInfluential?.name,
+      value: summary.mostInfluentialDomain || 'N/A',
+      domain: summary.mostInfluentialDomain,
       // favicon will be auto-generated from domain in component
     },
   ];
