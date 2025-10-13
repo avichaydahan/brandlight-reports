@@ -3,7 +3,6 @@ export interface RunningHeaderProps {
   timeperiod?: string;
   engines?: string[];
   category?: string;
-  pageInfo?: string;
 }
 
 export function RunningHeader({
@@ -11,7 +10,6 @@ export function RunningHeader({
   timeperiod,
   engines,
   category,
-  pageInfo,
 }: RunningHeaderProps): string {
   // Format engines array into a readable string
   const enginesText = engines ? engines.join(', ') : '';
@@ -21,9 +19,6 @@ export function RunningHeader({
       <div
         style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; gap: 16px;"
       >
-        ${
-          title || pageInfo
-            ? `
         <div
           style="display: flex; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; height: 20px; position: relative; gap: 8px;"
         >
@@ -32,13 +27,7 @@ export function RunningHeader({
           >
             ${title || ''}
           </p>
-          <p style="flex-grow: 1; width: 270px; font-size: 14px; text-align: right; color: #333643;">
-            ${pageInfo || ''}
-          </p>
         </div>
-        `
-            : ''
-        }
         ${
           timeperiod || engines || category
             ? `

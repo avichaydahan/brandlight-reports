@@ -285,10 +285,40 @@ export class PDFService {
         // },
       });
 
-      return Buffer.from(pdfBuffer);
+      return Buffer.from(
+        await this.addPageNumbersStartingFromSecond(pdfBuffer)
+      );
     } finally {
       await page.close();
     }
+  }
+
+  private async addPageNumbersStartingFromSecond(
+    pdfBytes: Uint8Array
+  ): Promise<Uint8Array> {
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+    const totalPages = pages.length - 1; // exclude first page from count
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    pages.forEach((page, index) => {
+      // Skip first page
+      if (index === 0) return;
+
+      const { width, height } = page.getSize();
+      const pageNumber = index; // page 2 => 1, page 3 => 2, etc.
+
+      const text = `Page ${pageNumber} of ${totalPages}`;
+      page.drawText(text, {
+        x: width - 84,
+        y: height - 30,
+        size: 10,
+        font,
+        color: rgb(51 / 255, 57 / 255, 67 / 255),
+      });
+    });
+
+    return await pdfDoc.save();
   }
 
   private async postProcessPDF(

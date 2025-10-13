@@ -113,7 +113,6 @@ export function generateTemplate(data: PartnershipReportData): string {
     timeperiod,
     engines,
     category,
-    pageInfo: `Page 2 of ${totalPages}`,
   })}
   
   <!-- Footer for all pages -->
