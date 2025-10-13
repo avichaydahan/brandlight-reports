@@ -60,6 +60,11 @@ export function SummaryCard(card: SummaryCardProps): string {
   }
 
   // If it's a domain card with favicon/icon
+  // Extract favicon URL from domain using Google's favicon service
+  const faviconUrl = card.domain
+    ? `https://www.google.com/s2/favicons?domain=${card.domain}&sz=64`
+    : '';
+
   return `
     <div
       style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; flex: 1; height: 84px; overflow: hidden; padding: 12px; border-radius: 8px; background: #fff; border-width: 1px; border-color: #ebecf1; border-style: solid;"
@@ -75,9 +80,16 @@ export function SummaryCard(card: SummaryCardProps): string {
         style="display: flex; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 1; gap: 8px;"
       >
         <div
-          style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; overflow: hidden; border-radius: 4px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #666;"
+          style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; overflow: hidden; border-radius: 4px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;"
         >
-          ${card.favicon || ''}
+          <img 
+            src="${faviconUrl}" 
+            alt="${card.domain} favicon" 
+            style="width: 16px; height: 16px; object-fit: contain;"
+            onerror="this.style.display='none'; this.parentElement.innerHTML='${
+              card.domain?.charAt(0).toUpperCase() || ''
+            }';"
+          />
         </div>
         <p
           style="flex-grow: 1; font-size: 14px; font-weight: 500; text-align: left; color: #0c1233; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0;"

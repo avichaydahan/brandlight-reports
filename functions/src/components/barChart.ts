@@ -9,21 +9,14 @@ export interface BarChartProps {
 }
 
 export function BarChart({ data }: BarChartProps): string {
-  // Sample domain data with exact values and icons from the image
-  const defaultData: DomainData[] = [
-    { name: 'Bloomberg', value: 81, icon: 'image-49.png' },
-    { name: 'NBC', value: 79, icon: 'image-56.png' },
-    { name: 'HP', value: 65, icon: 'image-52.png' },
-    { name: 'MarketWatch', value: 50, icon: 'marketwatch-icon' },
-    { name: 'Medium', value: 48, icon: 'medium-icon' },
-    { name: 'Dotdash', value: 81, icon: 'dotdash-icon' },
-    { name: 'WSJ', value: 81, icon: 'wsj-icon' },
-    { name: 'MW', value: 81, icon: 'mw-icon' },
-    { name: 'CNN', value: 81, icon: 'cnn-icon' },
-    { name: 'UK Flag', value: 81, icon: 'uk-flag-icon' },
-  ];
+  // Validate that data is provided
+  if (!data || data.length === 0) {
+    throw new Error(
+      'BarChart: data is required and must contain at least one domain'
+    );
+  }
 
-  const chartData = data.length > 0 ? data : defaultData;
+  const chartData = data;
   const maxValue = Math.max(...chartData.map((item) => item.value));
 
   return `
@@ -70,15 +63,22 @@ export function BarChart({ data }: BarChartProps): string {
       <!-- Icons at bottom -->
       <div style="display: flex; justify-content: space-around; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; margin-top: 0px;">
         ${chartData
-          .map(
-            (item) => `
-        <div style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; overflow: hidden; border-radius: 50px;">
-          <div style="width: 24px; height: 24px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #666;">
-            ${item.name.charAt(0)}
-          </div>
+          .map((item) => {
+            // Extract favicon URL from icon (assuming icon contains the domain name)
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${item.icon}&sz=64`;
+            return `
+        <div style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; overflow: hidden; border-radius: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+          <img 
+            src="${faviconUrl}" 
+            alt="${item.name} favicon" 
+            style="width: 16px; height: 16px; object-fit: contain;"
+            onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'font-size: 10px; font-weight: bold; color: #666;\\'>${item.name.charAt(
+              0
+            )}</span>';"
+          />
         </div>
-        `
-          )
+        `;
+          })
           .join('')}
       </div>
     </div>

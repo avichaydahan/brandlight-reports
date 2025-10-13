@@ -6,51 +6,18 @@ export interface CategoryData {
 }
 
 export interface DonutChartProps {
-  data?: CategoryData[];
+  data: CategoryData[];
 }
 
 export function DonutChart({ data }: DonutChartProps): string {
-  // Default sample data matching the design
-  const defaultData: CategoryData[] = [
-    {
-      category: 'Category name',
-      percentage: 35,
-      domains: '1.2k domains',
-      color: '#3A5AFE',
-    },
-    {
-      category: 'Category name',
-      percentage: 21,
-      domains: '1.2k domains',
-      color: '#7FE1D8',
-    },
-    {
-      category: 'Category name',
-      percentage: 12,
-      domains: '1.2k domains',
-      color: '#9D84FE',
-    },
-    {
-      category: 'Category name',
-      percentage: 25,
-      domains: '1.2k domains',
-      color: '#FF896F',
-    },
-    {
-      category: 'Category name',
-      percentage: 25,
-      domains: '1.2k domains',
-      color: '#F8BC3C',
-    },
-    {
-      category: 'Other',
-      percentage: 25,
-      domains: '1.2k domains',
-      color: '#EBECF1',
-    },
-  ];
+  // Validate that data is provided
+  if (!data || data.length === 0) {
+    throw new Error(
+      'DonutChart: data is required and must contain at least one category'
+    );
+  }
 
-  const chartData = data && data.length > 0 ? data : defaultData;
+  const chartData = data;
 
   return `
 <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 24px;">

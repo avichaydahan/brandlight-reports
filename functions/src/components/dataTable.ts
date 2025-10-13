@@ -12,79 +12,25 @@ export interface DomainData {
 }
 
 export interface DomainListProps {
-  totalCount?: number;
-  data?: DomainData[];
+  totalCount: number;
+  data: DomainData[];
 }
 
-export function DomainList({
-  totalCount = 16569,
-  data,
-}: DomainListProps): string {
-  // Default sample data matching the design
-  const defaultData: DomainData[] = [
-    {
-      name: 'Domain name.com',
-      influenceScore: 35,
-      citationFrequency: '3.1k',
-      change: 1.2,
-      monthlyVisits: '12.4M',
-      citationsToVisits: 35,
-      brandMentions: 56,
-      competitorMentions: 80,
-      domainType: 'News, Finance',
-      categories: 'Categorie name, Categorie name, Categorie name',
-    },
-    {
-      name: 'Domain name.com',
-      influenceScore: 35,
-      citationFrequency: '3.1k',
-      change: 1.2,
-      monthlyVisits: '12.4M',
-      citationsToVisits: 35,
-      brandMentions: 56,
-      competitorMentions: 80,
-      domainType: 'News, Finance',
-      categories: 'Categorie name, Categorie name, Categorie name',
-    },
-    {
-      name: 'Domain name.com',
-      influenceScore: 35,
-      citationFrequency: '3.1k',
-      change: 1.2,
-      monthlyVisits: '12.4M',
-      citationsToVisits: 35,
-      brandMentions: 56,
-      competitorMentions: 80,
-      domainType: 'News, Finance',
-      categories: 'Categorie name, Categorie name, Categorie name',
-    },
-    {
-      name: 'Domain name.com',
-      influenceScore: 35,
-      citationFrequency: '3.1k',
-      change: 1.2,
-      monthlyVisits: '12.4M',
-      citationsToVisits: 35,
-      brandMentions: 56,
-      competitorMentions: 80,
-      domainType: 'News, Finance',
-      categories: 'Categorie name, Categorie name, Categorie name',
-    },
-    {
-      name: 'Domain name.com',
-      influenceScore: 35,
-      citationFrequency: '3.1k',
-      change: 1.2,
-      monthlyVisits: '12.4M',
-      citationsToVisits: 35,
-      brandMentions: 56,
-      competitorMentions: 80,
-      domainType: 'News, Finance',
-      categories: 'Categorie name, Categorie name, Categorie name',
-    },
-  ];
+export function DomainList({ totalCount, data }: DomainListProps): string {
+  // Validate that required data is provided
+  if (!data || data.length === 0) {
+    throw new Error(
+      'DomainList: data is required and must contain at least one domain'
+    );
+  }
 
-  const domains = data && data.length > 0 ? data : defaultData;
+  if (typeof totalCount !== 'number' || totalCount < 0) {
+    throw new Error(
+      'DomainList: totalCount is required and must be a positive number'
+    );
+  }
+
+  const domains = data;
 
   // Split domains into pages to avoid page breaks
   // Assuming approximately 6-8 domain items per page to avoid cutting
@@ -95,10 +41,21 @@ export function DomainList({
     pages.push(domains.slice(i, i + itemsPerPage));
   }
 
-  const renderDomainItem = (domain: DomainData) => `
+  const renderDomainItem = (domain: DomainData) => {
+    // Extract favicon URL from domain using Google's favicon service
+    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain.name}&sz=64`;
+
+    return `
     <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; flex-grow: 0; flex-shrink: 0; width: 100%; overflow: hidden; gap: 4px; padding: 12px; border-radius: 12px; background: #fff; border: 1px solid #ebecf1; page-break-inside: avoid; margin-bottom: 8px; padding-top: 24px">
       <div style="display: flex; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 12px;">
-        <div style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; border-radius: 16px; background: #d8deff;"></div>
+        <div style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; border-radius: 16px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <img 
+            src="${faviconUrl}" 
+            alt="${domain.name} favicon" 
+            style="width: 16px; height: 16px; object-fit: contain;"
+            onerror="this.style.display='none'; this.parentElement.style.background='#d8deff';"
+          />
+        </div>
         <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 1; position: relative;">
           <p style="align-self: stretch; flex-grow: 0; flex-shrink: 0; width: 494px; font-size: 12px; font-weight: 600; text-align: left; color: #0c1233;">
             ${domain.name}
@@ -207,6 +164,7 @@ export function DomainList({
       </div>
     </div>
   `;
+  };
 
   return pages
     .map(

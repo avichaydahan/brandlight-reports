@@ -51,13 +51,13 @@ export function generateTemplate(data: PartnershipReportData): string {
       label: 'Top opportunity',
       value: topOpportunity?.name || 'N/A',
       domain: topOpportunity?.name,
-      favicon: topOpportunity?.name.charAt(0).toUpperCase(),
+      // favicon will be auto-generated from domain in component
     },
     {
       label: 'Most influential domain',
       value: mostInfluential?.name || 'N/A',
       domain: mostInfluential?.name,
-      favicon: mostInfluential?.name.charAt(0).toUpperCase(),
+      // favicon will be auto-generated from domain in component
     },
   ];
 
@@ -75,7 +75,7 @@ export function generateTemplate(data: PartnershipReportData): string {
   const barChartData = topDomains.map((domain) => ({
     name: domain.name.split('.')[0],
     value: domain.influenceScore,
-    icon: domain.name.charAt(0).toUpperCase(),
+    icon: domain.name, // Pass full domain name for favicon extraction
   }));
 
   // Format the current date for "Date issued"
