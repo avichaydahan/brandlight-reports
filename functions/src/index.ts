@@ -145,40 +145,6 @@ export const getJobStats = onCall(
 );
 
 /**
- * HTTP endpoint for cleanup operations (cron job)
- */
-export const cleanup = onRequest(
-  {
-    memory: '512MiB',
-    timeoutSeconds: 300,
-  },
-  async (req, res) => {
-    try {
-      // In production, add authentication/cron validation
-      logger.info('Starting cleanup operations');
-
-      const [deletedJobs, deletedFiles] = await Promise.all([
-        firestoreService.deleteOldJobs(30), // Delete jobs older than 30 days
-        storageService.cleanupOldFiles(7), // Delete files older than 7 days
-      ]);
-
-      res.json({
-        success: true,
-        deletedJobs,
-        deletedFiles,
-        message: `Cleanup completed: ${deletedJobs} jobs, ${deletedFiles} files deleted`,
-      });
-    } catch (error) {
-      logger.error('Cleanup operation failed', error as Error);
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-);
-
-/**
  * Health check endpoint
  */
 export const health = onRequest(async (req, res) => {

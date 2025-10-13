@@ -1,13 +1,10 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer, { Browser } from 'puppeteer';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { createLogger } from '../utils/logger.js';
-import { ChartService } from './chart.service.js';
-import { ReportData, ChartData } from '../types/index.js';
+import { ReportData } from '../types/index.js';
 import { config } from '../config/index.js';
-import { Footer } from '../components/footer.js';
 
 const logger = createLogger('PDFService');
 
@@ -25,11 +22,6 @@ export interface PDFOptions {
 
 export class PDFService {
   private browser: Browser | null = null;
-  private chartService: ChartService;
-
-  constructor() {
-    this.chartService = new ChartService();
-  }
 
   async initialize(): Promise<void> {
     try {
@@ -110,49 +102,12 @@ export class PDFService {
         );
       }
 
-      // Add charts if requested
-      if (options.includeCharts && data.data.charts) {
-        html = await this.embedCharts(html, data.data.charts as ChartData[]);
-      }
-
       // Add CSS for professional styling
       html = this.addProfessionalStyling(html, options);
 
       return html;
     } catch (error) {
       logger.error('Failed to generate HTML', error as Error);
-      throw error;
-    }
-  }
-
-  private async embedCharts(
-    html: string,
-    charts: ChartData[]
-  ): Promise<string> {
-    try {
-      let updatedHTML = html;
-
-      for (let i = 0; i < charts.length; i++) {
-        const chart = charts[i];
-        const chartBuffer = await this.chartService.generateChart(chart);
-        const base64Chart = chartBuffer.toString('base64');
-        const chartHTML = `<img src="data:image/png;base64,${base64Chart}" alt="Chart ${
-          i + 1
-        }" style="max-width: 100%; height: auto; margin: 20px 0;" />`;
-
-        // Replace placeholder or append to content
-        const placeholder = `{{CHART_${i + 1}}}`;
-        if (updatedHTML.includes(placeholder)) {
-          updatedHTML = updatedHTML.replace(placeholder, chartHTML);
-        } else {
-          // Append before closing body tag
-          updatedHTML = updatedHTML.replace('</body>', `${chartHTML}</body>`);
-        }
-      }
-
-      return updatedHTML;
-    } catch (error) {
-      logger.error('Failed to embed charts', error as Error);
       throw error;
     }
   }

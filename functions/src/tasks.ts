@@ -3,7 +3,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { FirestoreService } from './services/firestore.service.js';
 import { StorageService } from './services/storage.service.js';
 import { PDFService } from './services/pdf.service.js';
-import { CreateJobRequest, ReportData } from './types/index.js';
+import { ReportData } from './types/index.js';
 import { createLogger } from './utils/logger.js';
 import { config } from './config/index.js';
 import { generateMockData } from './data.js';

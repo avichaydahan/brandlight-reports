@@ -43,19 +43,6 @@ export class StorageService {
     }
   }
 
-  async deletePDF(fileName: string): Promise<void> {
-    try {
-      const filePath = `${config.storage.reportPath}${fileName}`;
-      const file = this.bucket.file(filePath);
-
-      await file.delete();
-      logger.info(`PDF deleted successfully: ${filePath}`);
-    } catch (error) {
-      logger.error(`Failed to delete PDF: ${fileName}`, error as Error);
-      throw error;
-    }
-  }
-
   async getSignedUrl(fileName: string, expiresInMinutes = 60): Promise<string> {
     try {
       const filePath = `${config.storage.reportPath}${fileName}`;
@@ -73,55 +60,6 @@ export class StorageService {
         `Failed to generate signed URL: ${fileName}`,
         error as Error
       );
-      throw error;
-    }
-  }
-
-  async listFiles(prefix = config.storage.reportPath): Promise<string[]> {
-    try {
-      const [files] = await this.bucket.getFiles({ prefix });
-      const fileNames = files.map((file) => file.name);
-
-      logger.info(`Listed ${fileNames.length} files with prefix: ${prefix}`);
-      return fileNames;
-    } catch (error) {
-      logger.error(
-        `Failed to list files with prefix: ${prefix}`,
-        error as Error
-      );
-      throw error;
-    }
-  }
-
-  async cleanupOldFiles(olderThanDays = 7): Promise<number> {
-    try {
-      const [files] = await this.bucket.getFiles({
-        prefix: config.storage.reportPath,
-      });
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
-
-      let deletedCount = 0;
-
-      for (const file of files) {
-        const [metadata] = await file.getMetadata();
-        if (metadata.timeCreated) {
-          const created = new Date(metadata.timeCreated);
-
-          if (created < cutoffDate) {
-            await file.delete();
-            deletedCount++;
-            logger.debug(`Deleted old file: ${file.name}`);
-          }
-        }
-      }
-
-      logger.info(
-        `Cleaned up ${deletedCount} old files older than ${olderThanDays} days`
-      );
-      return deletedCount;
-    } catch (error) {
-      logger.error('Failed to cleanup old files', error as Error);
       throw error;
     }
   }
