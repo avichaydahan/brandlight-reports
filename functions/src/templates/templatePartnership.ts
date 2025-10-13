@@ -20,10 +20,26 @@ export function generateTemplate(data: PartnershipReportData): string {
     domains,
   } = data;
 
+  // Sort domains by influence score
+  const sortedDomains = [...domains].sort(
+    (a, b) => b.influenceScore - a.influenceScore
+  );
+
+  // Get most influential domain (highest influence score)
+  const mostInfluential = sortedDomains[0];
+
+  // Get top opportunity (high citations but lower visits - best ROI potential)
+  const topOpportunity =
+    [...domains]
+      .filter((d) => d.citationsToVisits && d.citationsToVisits > 0)
+      .sort(
+        (a, b) => (b.citationsToVisits || 0) - (a.citationsToVisits || 0)
+      )[0] ||
+    sortedDomains[1] ||
+    sortedDomains[0];
+
   // Sort domains by influence score for the bar chart
-  const topDomains = domains
-    .sort((a, b) => b.influenceScore - a.influenceScore)
-    .slice(0, 10);
+  const topDomains = sortedDomains.slice(0, 10);
 
   // Prepare data for components
   const summaryCardsData = [
@@ -33,15 +49,15 @@ export function generateTemplate(data: PartnershipReportData): string {
     },
     {
       label: 'Top opportunity',
-      value: summary.topOpportunity,
-      isHighlight: true,
-      icon: 'MW',
+      value: topOpportunity?.name || 'N/A',
+      domain: topOpportunity?.name,
+      favicon: topOpportunity?.name.charAt(0).toUpperCase(),
     },
     {
       label: 'Most influential domain',
-      value: summary.mostInfluentialDomain,
-      isHighlight: true,
-      icon: 'B',
+      value: mostInfluential?.name || 'N/A',
+      domain: mostInfluential?.name,
+      favicon: mostInfluential?.name.charAt(0).toUpperCase(),
     },
   ];
 
@@ -70,6 +86,9 @@ export function generateTemplate(data: PartnershipReportData): string {
     day: 'numeric',
   });
 
+  // Calculate total pages dynamically
+  const totalPages = 3; // Cover + Summary/Charts + Domains
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,21 +106,21 @@ export function generateTemplate(data: PartnershipReportData): string {
     timeperiod: timeperiod,
     dateIssued: dateIssued,
   })}
+
+  <!-- Header for all pages -->
+  ${RunningHeader({
+    title: 'Partnership domains report',
+    timeperiod,
+    engines,
+    category,
+    pageInfo: `Page 2 of ${totalPages}`,
+  })}
   
   <!-- Footer for all pages -->
   ${Footer()}
   
   <div class="content-page">
-    <!-- Header for content pages only -->
-    ${RunningHeader({
-      title: 'Partnership domains report',
-      timeperiod,
-      engines,
-      category,
-      pageInfo: 'Page 2 of 3',
-    })}
     ${SummaryCards({ cards: summaryCardsData })}
-    
     <div class="charts-section">
       ${BarChart({
         data: barChartData,
@@ -115,15 +134,6 @@ export function generateTemplate(data: PartnershipReportData): string {
 
   <!-- Domains section starts on third page -->
   <div class="content-page">
-    <!-- Header for domains pages -->
-    ${RunningHeader({
-      title: 'Partnership domains report',
-      timeperiod,
-      engines,
-      category,
-      pageInfo: 'Page 3 of 3',
-    })}
-    
     ${DomainList({
       totalCount: domains.length,
       data: domains.slice(0, 20).map((domain) => ({
@@ -134,7 +144,7 @@ export function generateTemplate(data: PartnershipReportData): string {
         monthlyVisits: domain.estMonthlyVisits || '0',
         citationsToVisits: domain.citationsToVisits || 0,
         brandMentions: domain.sourcesMentioningBrand || 0,
-        competitorMentions: 0, // Add this field to your data if needed
+        competitorMentions: 0,
         domainType: domain.domainType || 'Unknown',
         categories: Array.isArray(domain.categories)
           ? domain.categories.join(', ')
