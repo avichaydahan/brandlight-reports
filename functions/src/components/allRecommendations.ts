@@ -37,13 +37,16 @@ export function AllRecommendations({
     .map((rec) => {
       const priorityInfo = priorityConfig[rec.priority];
       return `
-  <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 8px; padding: 12px; border-radius: 12px; background: #fff; border: 1px solid #ebecf1;">
+  <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 8px; padding: 12px; border-radius: 12px; background: #fff; border: 1px solid #ebecf1; page-break-inside: avoid;">
     <div style="display: flex; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 8px;">
       <div style="display: flex; justify-content: flex-start; align-items: flex-start; flex-grow: 1; position: relative; gap: 4px;">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-grow: 0; flex-shrink: 0; width: 20px; height: 20px; position: relative;" preserveAspectRatio="xMidYMid meet">
-          <path d="M0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10Z" fill="white"></path>
-          <path d="M18.75 9.08417H13.4189L18.0357 6.41833L17.1201 4.83167L12.5028 7.4975L15.1678 2.88042L13.5816 1.96458L10.9161 6.5805V1.25H9.08389V6.58108L6.41836 1.96458L4.83164 2.88042L7.49658 7.49633L2.88046 4.83167L1.96435 6.41833L6.58106 9.08417H1.25V10.9164H6.58047L1.96435 13.5823L2.87987 15.1689L7.49717 12.5031L4.83164 17.1202L6.41778 18.036L9.08389 13.4195V18.75H10.9161V13.3052L13.6306 18.0068L15.1182 17.1482L12.4031 12.4453L17.119 15.1683L18.0351 13.5817L13.4189 10.9158H18.7494V9.08417H18.75V9.08417ZM10 12.4908C9.67293 12.4909 9.34906 12.4265 9.04687 12.3013C8.74468 12.1761 8.4701 11.9926 8.2388 11.7613C8.0075 11.53 7.82402 11.2554 7.69882 10.9531C7.57362 10.6509 7.50916 10.3269 7.50912 9.99971C7.50908 9.67253 7.57347 9.34855 7.69859 9.04626C7.82372 8.74397 8.00715 8.4693 8.23839 8.23793C8.46964 8.00655 8.74418 7.823 9.04633 7.69776C9.34849 7.57252 9.67235 7.50804 9.99942 7.508C10.66 7.50792 11.2935 7.77034 11.7606 8.23751C12.2277 8.70469 12.4902 9.33836 12.4903 9.99912C12.4904 10.6599 12.228 11.2936 11.761 11.7609C11.294 12.2282 10.6605 12.4908 10 12.4908V12.4908Z" fill="#625DF5"></path>
-        </svg>
+        <div style="flex-grow: 0; flex-shrink: 0; width: 20px; height: 20px; position: relative; overflow: hidden; border-radius: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+          <img 
+            src="https://www.google.com/s2/favicons?domain=${rec.domain}&sz=64" 
+            alt="${rec.domain}" 
+            style="width: 16px; height: 16px; object-fit: contain; display: block;"
+          />
+        </div>
         <p style="flex-grow: 0; flex-shrink: 0; font-size: 10px; font-weight: 600; text-align: left; color: #0c1233;">
           ${rec.domain}
         </p>

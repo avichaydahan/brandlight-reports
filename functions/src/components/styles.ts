@@ -155,6 +155,13 @@ export function getBaseStyles(): string {
         page-break-before: always;
       }
       
+      /* Recommendations page - remove padding when items break across pages */
+      .content-page.recommendations-page {
+        padding: 40px;
+        min-height: 100vh;
+        page-break-before: always;
+      }
+      
       .page-header {
         margin-bottom: 40px;
         padding-bottom: 20px;
@@ -565,6 +572,11 @@ export function getBaseStyles(): string {
           padding-top: 100px; /* Space for header */
           padding-bottom: 80px; /* Space for footer */
           min-height: calc(100vh - 180px); /* Ensure content doesn't overlap */
+        }
+        
+        /* Recommendations page - no top padding on continuation pages */
+        .content-page.recommendations-page {
+          padding-top: 100px;
         }
         
         .running-header {

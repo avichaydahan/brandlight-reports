@@ -142,21 +142,31 @@ export function generateTemplate(data: PartnershipReportData): string {
   ${
     topRecommendations && topRecommendations.length > 0
       ? `
-  <div class="content-page">
-    <div style="display: flex; flex-direction: column; gap: 32px;">
-      ${TopRecommendations({
-        recommendations: topRecommendations,
+  <div class="content-page recommendations-page">
+    ${TopRecommendations({
+      recommendations: topRecommendations,
+    })}
+    ${
+      allRecommendations && allRecommendations.length > 0
+        ? `
+    <div style="margin-top: 32px;">
+      ${AllRecommendations({
+        recommendations: allRecommendations,
+        totalCount: allRecommendations.length,
       })}
-      
-      ${
-        allRecommendations && allRecommendations.length > 0
-          ? AllRecommendations({
-              recommendations: allRecommendations,
-              totalCount: allRecommendations.length,
-            })
-          : ''
-      }
     </div>
+    `
+        : ''
+    }
+  </div>
+  `
+      : allRecommendations && allRecommendations.length > 0
+      ? `
+  <div class="content-page recommendations-page">
+    ${AllRecommendations({
+      recommendations: allRecommendations,
+      totalCount: allRecommendations.length,
+    })}
   </div>
   `
       : ''

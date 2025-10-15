@@ -28,7 +28,7 @@ export function TopRecommendations({
   ${topThree
     .map(
       (rec) => `
-  <div style="display: flex; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 12px; padding: 12px; border-radius: 10px; background: #fafafb;">
+  <div style="display: flex; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 12px; padding: 12px; border-radius: 10px; background: #fafafb; page-break-inside: avoid;">
     <p style="flex-grow: 0; flex-shrink: 0; width: 18.13px; height: 20px; font-size: 16px; font-weight: 700; text-align: center; color: #000;">
       🔥
     </p>
