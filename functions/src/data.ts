@@ -130,7 +130,9 @@ export async function fetchPaginatedDemo(
 }
 
 // Generate partnership domains mock data
-export function generatePartnershipDomainsData(): PartnershipReportData {
+// DEPRECATED: This function is no longer used. Use mockPartnershipData from dev/mockData.ts instead
+// Kept here for reference only
+function generatePartnershipDomainsData_DEPRECATED(): PartnershipReportData {
   const domains: PartnershipDomainData[] = [
     {
       name: 'marketwatch.com',
@@ -238,26 +240,46 @@ export function generatePartnershipDomainsData(): PartnershipReportData {
     summary: {
       totalDomainsAnalyzed: 16569,
       topOpportunity: 'marketwatch.com',
-      mostInfluentialDomain: 'Bloomberg.com',
+      mostInfluentialDomain: 'bloomberg.com',
     },
     influenceByDomainType: {
-      'Category name': { percentage: 35, domains: 1200 },
-      'Category name 2': { percentage: 21, domains: 1200 },
-      'Category name 3': { percentage: 12, domains: 1200 },
-      'Category name 4': { percentage: 25, domains: 1200 },
-      'Category name 5': { percentage: 25, domains: 1200 },
-      Other: { percentage: 25, domains: 1200 },
+      'News & Media': {
+        percentage: 35,
+        domains: 5799,
+      },
+      Business: {
+        percentage: 28,
+        domains: 4639,
+      },
+      Technology: {
+        percentage: 22,
+        domains: 3645,
+      },
+      'Social Media': {
+        percentage: 10,
+        domains: 1657,
+      },
+      Education: {
+        percentage: 3,
+        domains: 497,
+      },
+      Other: {
+        percentage: 2,
+        domains: 332,
+      },
     },
     domains: domains,
   };
 }
 
 // Export function for generating mock data
-export function generateMockData(
+export async function generateMockData(
   reportType: 'A' | 'B' | 'C' | 'D' | 'Content' | 'Partnership'
-): any {
+): Promise<any> {
   if (reportType === 'Partnership') {
-    return generatePartnershipDomainsData();
+    // Use the centralized mock data from mockData.ts
+    const { mockPartnershipData } = await import('./dev/mockData.js');
+    return mockPartnershipData;
   }
 
   const items = buildDemoItems(50, reportType);

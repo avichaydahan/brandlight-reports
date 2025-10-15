@@ -57,7 +57,7 @@ export const processReportJob = onRequest(
 
       // Generate report data (use provided data or generate mock data)
       const reportData: ReportData =
-        request.data || generateMockReportData(request.reportType);
+        request.data || (await generateMockReportData(request.reportType));
 
       // Update progress
       await firestoreService.updateJob(jobId, { progress: 25 });
@@ -170,8 +170,8 @@ export const processReportTaskQueue = onTaskDispatched(
 
 // Helper functions
 
-function generateMockReportData(reportType: string): ReportData {
-  const mockData = generateMockData(
+async function generateMockReportData(reportType: string): Promise<ReportData> {
+  const mockData = await generateMockData(
     reportType as 'A' | 'B' | 'C' | 'D' | 'Content' | 'Partnership'
   );
 

@@ -117,7 +117,7 @@ export function generateTemplate(data: PartnershipReportData): string {
   <div class="content-page">
     ${DomainList({
       totalCount: domains.length,
-      data: domains.slice(0, 20).map((domain) => ({
+      data: domains.map((domain) => ({
         name: domain.name,
         influenceScore: domain.influenceScore,
         citationFrequency: `${domain.citationFrequency.toFixed(1)}k`,

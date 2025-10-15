@@ -18,43 +18,55 @@ export function DonutChart({ data }: DonutChartProps): string {
   }
 
   const chartData = data;
-  
+
   // Calculate total domains
-  const totalDomains = chartData.reduce((sum, item) => sum + parseInt(item.domains), 0);
-  
+  const totalDomains = chartData.reduce(
+    (sum, item) => sum + parseInt(item.domains),
+    0
+  );
+
   // Calculate coverage percentage - categories should add up to ~100%
   // This represents the percentage of domains that are categorized
-  const totalPercentage = Math.min(100, Math.round(chartData.reduce((sum, item) => sum + item.percentage, 0)));
-  
-  // Generate dynamic SVG paths for donut chart
+  const totalPercentage = Math.min(
+    100,
+    Math.round(chartData.reduce((sum, item) => sum + item.percentage, 0))
+  );
+
+  // Generate dynamic SVG paths for donut chart with rounded corners and gaps
   const generateDonutPaths = () => {
     let currentAngle = -90; // Start at top (12 o'clock)
     const radius = 76; // Distance from center to middle of stroke
     const centerX = 84;
     const centerY = 84;
-    
-    return chartData.map((item) => {
-      const sweepAngle = (item.percentage / 100) * 360;
-      const startAngle = currentAngle;
-      const endAngle = currentAngle + sweepAngle;
-      
-      // Convert angles to radians
-      const startRad = (startAngle * Math.PI) / 180;
-      const endRad = (endAngle * Math.PI) / 180;
-      
-      // Calculate start and end points
-      const x1 = centerX + radius * Math.cos(startRad);
-      const y1 = centerY + radius * Math.sin(startRad);
-      const x2 = centerX + radius * Math.cos(endRad);
-      const y2 = centerY + radius * Math.sin(endRad);
-      
-      currentAngle = endAngle;
-      
-      // Determine if we need the large arc flag
-      const largeArcFlag = sweepAngle > 180 ? 1 : 0;
-      
-      return `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}" stroke="${item.color}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>`;
-    }).join('\n        ');
+    const gapDegrees = 16; // Small gap between segments for visual separation
+    const totalGaps = chartData.length * gapDegrees; // Total degrees used for gaps
+    const availableForSegments = 360 - totalGaps; // Remaining degrees for actual segments
+
+    return chartData
+      .map((item) => {
+        // Calculate this segment's angle from available space (not full 360)
+        const segmentAngle = (item.percentage / 100) * availableForSegments;
+        const startAngle = currentAngle;
+        const endAngle = startAngle + segmentAngle;
+
+        // Convert angles to radians
+        const startRad = (startAngle * Math.PI) / 180;
+        const endRad = (endAngle * Math.PI) / 180;
+
+        // Calculate start and end points
+        const x1 = centerX + radius * Math.cos(startRad);
+        const y1 = centerY + radius * Math.sin(startRad);
+        const x2 = centerX + radius * Math.cos(endRad);
+        const y2 = centerY + radius * Math.sin(endRad);
+
+        currentAngle = endAngle + gapDegrees; // Move to next segment's start (including gap)
+
+        // Determine if we need the large arc flag
+        const largeArcFlag = segmentAngle > 180 ? 1 : 0;
+
+        return `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}" stroke="${item.color}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>`;
+      })
+      .join('\n        ');
   };
 
   return `
@@ -85,24 +97,24 @@ export function DonutChart({ data }: DonutChartProps): string {
           item.color
         };">
           <div style="width: 15px; height: ${
-            item.category === 'Other' ? '14px' : '7px'
+            item.category === 'Other' ? '16px' : '7px'
           }; position: absolute; left: -1px; top: -1px; background: ${
             item.color
           };"></div>
         </div>
         <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 1; position: relative; gap: 4px;">
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 14px; text-align: left; color: #333643;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 16px; text-align: left; color: #333643;">
             ${item.category}
           </p>
         </div>
         <div style="display: flex; justify-content: flex-start; align-items: center; flex-grow: 0; flex-shrink: 0; position: relative; gap: 6px;">
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 16px; font-weight: 600; text-align: right; color: #333643;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 18px; font-weight: 600; text-align: right; color: #333643;">
             ${item.percentage}%
           </p>
           <svg width="3" height="4" viewBox="0 0 3 4" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-grow: 0; flex-shrink: 0;" preserveAspectRatio="none">
             <circle cx="1.92737" cy="2" r="1.07263" fill="#666976"></circle>
           </svg>
-          <p style="flex-grow: 0; flex-shrink: 0; font-size: 14px; text-align: right; color: #333643;">
+          <p style="flex-grow: 0; flex-shrink: 0; font-size: 16px; text-align: right; color: #333643;">
             ${item.domains}
           </p>
         </div>

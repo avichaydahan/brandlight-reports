@@ -171,7 +171,7 @@ export const demoReport = onRequest(
 
       // Generate demo data
       const { generateMockData } = await import('./data.js');
-      const mockData = generateMockData(
+      const mockData = await generateMockData(
         reportType as 'A' | 'B' | 'C' | 'D' | 'Content' | 'Partnership'
       );
 

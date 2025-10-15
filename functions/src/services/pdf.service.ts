@@ -222,7 +222,16 @@ export class PDFService {
     const page = await this.browser.newPage();
 
     try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      // Set content and wait for network to be idle
+      await page.setContent(html, {
+        waitUntil: 'networkidle0',
+      });
+
+      // ADD JUST A 10 SECOND DELAY HERE TO ALLOW ALL IMAGES TO LOAD
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      // Additional delay to ensure all favicons are rendered
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const pdfBuffer = await page.pdf({
         format: options.format || 'A4',
