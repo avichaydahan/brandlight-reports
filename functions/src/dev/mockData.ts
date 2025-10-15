@@ -154,6 +154,88 @@ export const mockPartnershipData: PartnershipReportData = {
     // Generate additional realistic domains
     ...generateAdditionalDomains(40),
   ],
+  topRecommendations: [
+    {
+      title: 'Pitch Bloomberg.com for banking coverage',
+      description:
+        "Securing placement in Bloomberg's high-traffic finance list will boost AI visibility and position your brand alongside market leaders.",
+    },
+    {
+      title: 'Partner with TechCrunch for startup spotlight',
+      description:
+        "TechCrunch's extensive startup coverage reaches 12M monthly readers. A featured article will increase brand awareness in the tech ecosystem.",
+    },
+    {
+      title: 'Sponsor Forbes fintech newsletter',
+      description:
+        "Forbes' fintech newsletter reaches 500K subscribers weekly. Sponsorship will position your brand as a thought leader in financial innovation.",
+    },
+  ],
+  allRecommendations: [
+    {
+      domain: 'bloomberg.com',
+      priority: 'high' as const,
+      title: 'Place fintech feature on Bloomberg.com',
+      description:
+        "Bloomberg's finance and fintech coverage reaches 9M readers monthly. A sponsored feature here will increase brand authority and AI-driven mentions.",
+    },
+    {
+      domain: 'techcrunch.com',
+      priority: 'high' as const,
+      title: 'Secure startup spotlight on TechCrunch',
+      description:
+        'TechCrunch features innovative startups daily. A spotlight article will boost visibility among investors and tech enthusiasts.',
+    },
+    {
+      domain: 'forbes.com',
+      priority: 'high' as const,
+      title: 'Sponsor Forbes fintech newsletter',
+      description:
+        'The Forbes fintech newsletter has a highly engaged audience. Weekly sponsorship will establish thought leadership.',
+    },
+    {
+      domain: 'wsj.com',
+      priority: 'medium' as const,
+      title: 'Contribute expert opinion to WSJ',
+      description:
+        'Wall Street Journal actively seeks industry expert opinions. Contributing articles will enhance credibility and reach C-level executives.',
+    },
+    {
+      domain: 'reuters.com',
+      priority: 'medium' as const,
+      title: 'Feature in Reuters business technology section',
+      description:
+        'Reuters business technology section reaches global audiences. Feature coverage will expand international brand recognition.',
+    },
+    {
+      domain: 'theverge.com',
+      priority: 'medium' as const,
+      title: 'Product review on The Verge',
+      description:
+        'The Verge specializes in tech product reviews with 20M monthly readers. A detailed review will drive product awareness.',
+    },
+    {
+      domain: 'wired.com',
+      priority: 'low' as const,
+      title: 'Feature in Wired innovation series',
+      description:
+        'Wired covers cutting-edge innovation stories. A feature in their series will position your brand as an innovator.',
+    },
+    {
+      domain: 'cnn.com',
+      priority: 'low' as const,
+      title: 'Business segment on CNN',
+      description:
+        'CNN Business reaches mass audiences. A TV segment will provide mainstream visibility and credibility.',
+    },
+    {
+      domain: 'businessinsider.com',
+      priority: 'low' as const,
+      title: 'Startup profile on Business Insider',
+      description:
+        'Business Insider profiles successful startups regularly. A feature article will attract potential customers and investors.',
+    },
+  ],
 };
 
 /**

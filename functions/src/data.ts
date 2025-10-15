@@ -26,6 +26,18 @@ export interface PartnershipSummary {
   mostInfluentialDomain: string;
 }
 
+export interface PartnershipRecommendation {
+  title: string;
+  description: string;
+}
+
+export interface DetailedRecommendation {
+  domain: string;
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+}
+
 export interface PartnershipReportData {
   timeperiod: string;
   engines: string[];
@@ -33,6 +45,8 @@ export interface PartnershipReportData {
   summary: PartnershipSummary;
   influenceByDomainType: Record<string, DomainTypeInfluence>;
   domains: PartnershipDomainData[];
+  topRecommendations?: PartnershipRecommendation[];
+  allRecommendations?: DetailedRecommendation[];
 }
 
 // create N dummy items for each report type

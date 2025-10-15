@@ -18,3 +18,13 @@ export {
 } from './dataTable.js';
 export { getBaseStyles } from './styles.js';
 export { PageSection, type PageSectionProps } from './pageSection.js';
+export {
+  TopRecommendations,
+  type TopRecommendationsProps,
+  type Recommendation,
+} from './topRecommendations.js';
+export {
+  AllRecommendations,
+  type AllRecommendationsProps,
+  type RecommendationItem,
+} from './allRecommendations.js';

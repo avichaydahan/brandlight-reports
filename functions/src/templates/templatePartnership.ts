@@ -7,6 +7,8 @@ import {
   DonutChart,
   BarChart,
   DomainList,
+  TopRecommendations,
+  AllRecommendations,
   getBaseStyles,
 } from '../components/index.js';
 
@@ -18,6 +20,8 @@ export function generateTemplate(data: PartnershipReportData): string {
     summary,
     influenceByDomainType,
     domains,
+    topRecommendations,
+    allRecommendations,
   } = data;
 
   // Sort domains by influence score for the bar chart
@@ -133,6 +137,30 @@ export function generateTemplate(data: PartnershipReportData): string {
       })),
     })}
   </div>
+
+  <!-- Recommendations section starts on new page -->
+  ${
+    topRecommendations && topRecommendations.length > 0
+      ? `
+  <div class="content-page">
+    <div style="display: flex; flex-direction: column; gap: 32px;">
+      ${TopRecommendations({
+        recommendations: topRecommendations,
+      })}
+      
+      ${
+        allRecommendations && allRecommendations.length > 0
+          ? AllRecommendations({
+              recommendations: allRecommendations,
+              totalCount: allRecommendations.length,
+            })
+          : ''
+      }
+    </div>
+  </div>
+  `
+      : ''
+  }
 </body>
 </html>`;
 }
