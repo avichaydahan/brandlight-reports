@@ -1,6 +1,7 @@
 import express from 'express';
 import { generateTemplate } from '../templates/templatePartnership.js';
-import { mockPartnershipData } from './mockData.js';
+import { generateSingleDomainTemplate } from '../templates/templateSingleDomain.js';
+import { mockPartnershipData, mockSingleDomainData } from './mockData.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import chokidar from 'chokidar';
@@ -43,7 +44,7 @@ function setupWebSocket(port: number) {
   return wss;
 }
 
-// Serve the generated HTML
+// Serve the generated HTML - Partnership Report
 app.get('/', (req, res) => {
   try {
     const html = generateTemplate(mockPartnershipData);
@@ -54,6 +55,23 @@ app.get('/', (req, res) => {
       .status(500)
       .send(
         `Error generating template: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+  }
+});
+
+// Serve Single Domain Report
+app.get('/single-domain', (req, res) => {
+  try {
+    const html = generateSingleDomainTemplate(mockSingleDomainData);
+    res.send(html);
+  } catch (error) {
+    console.error('Error generating single domain template:', error);
+    res
+      .status(500)
+      .send(
+        `Error generating single domain template: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`
       );
@@ -108,7 +126,11 @@ async function startServer() {
 
     app.listen(PORT, () => {
       console.log(`🚀 Development server running at http://localhost:${PORT}`);
-      console.log(`🔌 WebSocket server running on port ${WS_PORT}`);
+      console.log(`� Partnership Report: http://localhost:${PORT}`);
+      console.log(
+        `🌐 Single Domain Report: http://localhost:${PORT}/single-domain`
+      );
+      console.log(`�🔌 WebSocket server running on port ${WS_PORT}`);
       console.log('📝 Edit your components and templates to see live changes!');
       console.log('💡 To stop the server, press Ctrl+C');
     });

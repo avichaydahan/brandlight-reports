@@ -1,4 +1,5 @@
 import { PartnershipReportData } from '../data.js';
+import { SingleDomainReportData } from '../templates/templateSingleDomain.js';
 
 /**
  * Production-ready mock data for Partnership Report
@@ -480,3 +481,344 @@ function generateAdditionalDomains(count: number) {
     };
   });
 }
+
+/**
+ * Mock data for Single Domain Report
+ * This represents a detailed influence report for a single domain (Bloomberg.com example)
+ */
+export const mockSingleDomainData: SingleDomainReportData = {
+  // Cover page data
+  coverData: {
+    title: 'Domain Influence Report',
+    subtitle: 'Bloomberg.com',
+    timeperiod: 'Jul 30, 2025 - Aug 30, 2025',
+  },
+
+  // Header data
+  domainName: 'Bloomberg.com',
+  domainLogo: 'https://www.google.com/s2/favicons?domain=bloomberg.com&sz=128',
+  timePeriod: 'Jul 30, 2025 - Aug 30, 2025',
+
+  // Summary cards (4 boxes)
+  summaryCards: [
+    {
+      label: 'Total mentions',
+      value: '12,847',
+    },
+    {
+      label: 'Influence score',
+      value: '81',
+    },
+    {
+      label: 'Avg. sentiment',
+      value: 'Positive',
+    },
+    {
+      label: 'Citation frequency',
+      value: '3.8k',
+    },
+  ],
+
+  // Bar chart data - AI engines mentions
+  barChartData: [
+    {
+      name: 'ChatGPT',
+      value: 42,
+      icon: 'openai.com',
+    },
+    {
+      name: 'Claude',
+      value: 38,
+      icon: 'anthropic.com',
+    },
+    {
+      name: 'Gemini',
+      value: 35,
+      icon: 'google.com',
+    },
+    {
+      name: 'Perplexity',
+      value: 32,
+      icon: 'perplexity.ai',
+    },
+    {
+      name: 'Bing AI',
+      value: 28,
+      icon: 'bing.com',
+    },
+    {
+      name: 'Copilot',
+      value: 25,
+      icon: 'microsoft.com',
+    },
+    {
+      name: 'Meta AI',
+      value: 22,
+      icon: 'meta.com',
+    },
+    {
+      name: 'Grok',
+      value: 18,
+      icon: 'x.com',
+    },
+  ],
+
+  // Top cited content table
+  topCitedContent: {
+    title: 'Top cited content',
+    rows: [
+      {
+        rank: 1,
+        url: '/news/business-banking-loans',
+        mentions: 2808,
+        brandMentioned: true,
+        sentiment: 'positive',
+        percentage: 1.2,
+      },
+      {
+        rank: 2,
+        url: '/business/payments/online',
+        mentions: 2654,
+        brandMentioned: true,
+        sentiment: 'positive',
+        percentage: 1.1,
+      },
+      {
+        rank: 3,
+        url: '/commercial-banking/startups',
+        mentions: 2445,
+        brandMentioned: true,
+        sentiment: 'neutral',
+        percentage: 1.0,
+      },
+      {
+        rank: 4,
+        url: '/asset-based-lending',
+        mentions: 2198,
+        brandMentioned: true,
+        sentiment: 'positive',
+        percentage: 0.9,
+      },
+      {
+        rank: 5,
+        url: '/-ai-content-mercedes',
+        mentions: 1876,
+        brandMentioned: true,
+        sentiment: 'negative',
+        percentage: 0.8,
+      },
+    ],
+  },
+
+  // Pie chart data - Competitors mentioned
+  pieChartData: {
+    title: 'Top competitors mentioned in AI engines',
+    segments: [
+      {
+        label: 'Reuters',
+        value: 42,
+        color: '#304BD4',
+      },
+      {
+        label: 'WSJ',
+        value: 23,
+        color: 'url(#gradient_blue)',
+      },
+      {
+        label: 'CNBC',
+        value: 18,
+        color: 'url(#gradient_cyan)',
+      },
+      {
+        label: 'Financial Times',
+        value: 10,
+        color: '#5B76FE',
+      },
+      {
+        label: 'MarketWatch',
+        value: 7,
+        color: '#FF896F',
+      },
+    ],
+  },
+
+  // Top sources mentioning competitors
+  competitorSources: {
+    title: 'Top sources mentioning competitors',
+    sources: [
+      {
+        rank: 1,
+        url: 'nytimes.com/business/finance',
+        mentions: 1847,
+        sentiment: 'positive',
+        percentageChange: 12.5,
+        competitors: ['reuters.com', 'wsj.com', 'cnbc.com'],
+      },
+      {
+        rank: 2,
+        url: 'forbes.com/finance/markets',
+        mentions: 1654,
+        sentiment: 'positive',
+        percentageChange: 8.3,
+        competitors: ['reuters.com', 'ft.com'],
+      },
+      {
+        rank: 3,
+        url: 'economist.com/finance',
+        mentions: 1432,
+        sentiment: 'neutral',
+        percentageChange: -3.2,
+        competitors: ['wsj.com', 'ft.com', 'marketwatch.com', 'reuters.com'],
+      },
+      {
+        rank: 4,
+        url: 'cnbc.com/markets/stocks',
+        mentions: 1298,
+        sentiment: 'positive',
+        percentageChange: 15.7,
+        competitors: ['reuters.com', 'wsj.com'],
+      },
+      {
+        rank: 5,
+        url: 'reuters.com/business/finance',
+        mentions: 1187,
+        sentiment: 'neutral',
+        percentageChange: -1.5,
+        competitors: ['wsj.com', 'ft.com', 'cnbc.com'],
+      },
+    ],
+  },
+
+  // Partnership recommendations
+  recommendations: {
+    totalCount: 3,
+    recommendations: [
+      {
+        domain: 'nytimes.com',
+        priority: 'high' as const,
+        title: 'Feature in NYT Business section',
+        description:
+          'The New York Times Business section reaches 8M readers monthly. A featured article will enhance credibility and position Bloomberg.com alongside industry leaders.',
+      },
+      {
+        domain: 'forbes.com',
+        priority: 'high' as const,
+        title: 'Sponsor Forbes Finance newsletter',
+        description:
+          'Forbes Finance newsletter has 600K engaged subscribers. Sponsorship will establish thought leadership in financial markets.',
+      },
+      {
+        domain: 'economist.com',
+        priority: 'medium' as const,
+        title: 'Contribute expert analysis to The Economist',
+        description:
+          'The Economist actively seeks industry expert perspectives. Contributing in-depth analysis will enhance authority among C-level executives and policymakers.',
+      },
+    ],
+  },
+
+  // Recommended actions
+  recommendedActions: {
+    actions: [
+      {
+        title: 'Increase content on sustainable finance',
+        description:
+          'AI engines frequently cite Bloomberg content about ESG and sustainable investing. Expanding coverage in this area will drive +18% more citations.',
+      },
+      {
+        title: 'Optimize banking industry analysis pages',
+        description:
+          'Banking analysis content receives high engagement but low AI visibility. Adding structured data and key statistics will improve AI engine pickup by 25%.',
+      },
+      {
+        title: 'Create more data-driven market reports',
+        description:
+          'AI engines prefer content with clear data points and statistics. Publishing weekly market data reports will increase citation frequency from 3.8k to 4.5k.',
+      },
+      {
+        title: 'Develop fintech innovation hub',
+        description:
+          'Fintech is a rapidly growing topic with +42% YoY growth in AI citations. Creating a dedicated fintech section will capture emerging market opportunities.',
+      },
+    ],
+  },
+
+  // Sources section
+  sources: {
+    totalCount: 6,
+    data: [
+      {
+        name: 'chatgpt.com',
+        influenceScore: 92,
+        citationFrequency: '4.2k',
+        change: 15.3,
+        monthlyVisits: '1.8B',
+        citationsToVisits: 12,
+        brandMentions: 2845,
+        competitorMentions: 1234,
+        domainType: 'AI Assistant',
+        categories: 'AI, Technology, Chat',
+      },
+      {
+        name: 'claude.ai',
+        influenceScore: 88,
+        citationFrequency: '3.9k',
+        change: 22.1,
+        monthlyVisits: '450M',
+        citationsToVisits: 38,
+        brandMentions: 2456,
+        competitorMentions: 987,
+        domainType: 'AI Assistant',
+        categories: 'AI, Technology, Chat',
+      },
+      {
+        name: 'gemini.google.com',
+        influenceScore: 85,
+        citationFrequency: '3.7k',
+        change: 8.7,
+        monthlyVisits: '2.2B',
+        citationsToVisits: 8,
+        brandMentions: 2198,
+        competitorMentions: 1456,
+        domainType: 'AI Assistant',
+        categories: 'AI, Technology, Search',
+      },
+      {
+        name: 'perplexity.ai',
+        influenceScore: 79,
+        citationFrequency: '3.2k',
+        change: 18.5,
+        monthlyVisits: '95M',
+        citationsToVisits: 45,
+        brandMentions: 1987,
+        competitorMentions: 654,
+        domainType: 'AI Search',
+        categories: 'AI, Search, Research',
+      },
+      {
+        name: 'bing.com/chat',
+        influenceScore: 76,
+        citationFrequency: '2.9k',
+        change: 5.2,
+        monthlyVisits: '1.1B',
+        citationsToVisits: 15,
+        brandMentions: 1654,
+        competitorMentions: 987,
+        domainType: 'AI Search',
+        categories: 'AI, Search, Microsoft',
+      },
+      {
+        name: 'copilot.microsoft.com',
+        influenceScore: 72,
+        citationFrequency: '2.6k',
+        change: 12.9,
+        monthlyVisits: '320M',
+        citationsToVisits: 32,
+        brandMentions: 1432,
+        competitorMentions: 765,
+        domainType: 'AI Assistant',
+        categories: 'AI, Productivity, Microsoft',
+      },
+    ],
+  },
+};

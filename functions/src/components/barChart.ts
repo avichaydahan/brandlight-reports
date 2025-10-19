@@ -20,8 +20,8 @@ export function BarChart({ data }: BarChartProps): string {
   const maxValue = Math.max(...chartData.map((item) => item.value));
 
   return `
-<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; gap: 24px;">
-  <p style="align-self: stretch; flex-grow: 0; flex-shrink: 0; width: 554px; font-size: 16px; font-weight: 600; text-align: left; color: #333643;">
+<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; width: 100%; flex-grow: 0; flex-shrink: 0; position: relative; gap: 24px;">
+  <p style="align-self: stretch; flex-grow: 0; flex-shrink: 0; width: 100%; font-size: 16px; font-weight: 600; text-align: left; color: #333643;">
     Domains by influence score
   </p>
   <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 0;">

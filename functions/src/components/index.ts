@@ -28,3 +28,23 @@ export {
   type AllRecommendationsProps,
   type RecommendationItem,
 } from './allRecommendations.js';
+export {
+  generateHeaderSingleDomain,
+  type HeaderSingleDomainData,
+} from './headerSingleDomain.js';
+export { generatePieChart, type PieChartData } from './pieChart.js';
+export {
+  generateTopCitedContentTable,
+  type TopCitedContentTableData,
+  type TopCitedContentRow,
+} from './topCitedContentTable.js';
+export {
+  generateTopSourcesMentioningCompetitors,
+  type TopSourcesMentioningCompetitorsData,
+  type CompetitorSource,
+} from './topSourcesMentioningCompetitors.js';
+export {
+  generateRecommendedActions,
+  type RecommendedActionsData,
+  type RecommendedAction,
+} from './recommendedActions.js';

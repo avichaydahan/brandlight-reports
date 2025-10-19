@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Base job schema
 export const JobSchema = z.object({
   id: z.string(),
-  type: z.enum(['A', 'B', 'C', 'D', 'Content', 'Partnership']),
+  type: z.enum(['A', 'B', 'C', 'D', 'Content', 'Partnership', 'SingleDomain']),
   status: z.enum(['pending', 'processing', 'completed', 'failed']),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -24,7 +24,15 @@ export const ReportDataSchema = z.object({
 
 // API request schemas
 export const CreateJobRequestSchema = z.object({
-  reportType: z.enum(['A', 'B', 'C', 'D', 'Content', 'Partnership']),
+  reportType: z.enum([
+    'A',
+    'B',
+    'C',
+    'D',
+    'Content',
+    'Partnership',
+    'SingleDomain',
+  ]),
   data: ReportDataSchema.optional(),
   options: z
     .object({

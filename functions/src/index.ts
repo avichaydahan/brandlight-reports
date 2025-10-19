@@ -226,6 +226,81 @@ export const demoReport = onRequest(
   }
 );
 
+/**
+ * Demo function to generate a Single Domain PDF report
+ */
+export const demoSingleDomainReport = onRequest(
+  {
+    memory: '1GiB',
+    timeoutSeconds: 60,
+    cors: true,
+  },
+  async (req, res) => {
+    try {
+      logger.info('Generating demo Single Domain report');
+
+      // Import mock data
+      const { mockSingleDomainData } = await import('./dev/mockData.js');
+
+      // Wrap in ReportData format for PDF service
+      const reportData = {
+        title: 'Single Domain Influence Report',
+        subtitle: `${mockSingleDomainData.domainName} - ${mockSingleDomainData.timePeriod}`,
+        author: 'BrandLight',
+        date: new Date().toISOString(),
+        data: mockSingleDomainData as unknown as Record<string, unknown>,
+      };
+
+      // Generate PDF using the PDFService
+      const pdfBuffer = await pdfService.generateReportPDF(
+        'SingleDomain',
+        reportData,
+        {
+          format: 'A4',
+          includeCharts: true,
+        }
+      );
+
+      // Upload PDF to Firebase Storage
+      const fileName = `demo-single-domain-${
+        mockSingleDomainData.domainName
+      }-${Date.now()}.pdf`;
+      const downloadUrl = await storageService.uploadPDF(pdfBuffer, fileName, {
+        reportType: 'SingleDomain',
+        domainName: mockSingleDomainData.domainName,
+        generatedAt: new Date().toISOString(),
+        isDemo: 'true',
+      });
+
+      // Return the download URL
+      res.json({
+        success: true,
+        reportType: 'SingleDomain',
+        domainName: mockSingleDomainData.domainName,
+        downloadUrl,
+        fileName,
+        message: 'Demo Single Domain report generated successfully',
+        timePeriod: mockSingleDomainData.timePeriod,
+      });
+
+      logger.info('Demo Single Domain report uploaded successfully', {
+        fileName,
+        downloadUrl,
+        domainName: mockSingleDomainData.domainName,
+      });
+    } catch (error) {
+      logger.error(
+        'Failed to generate demo Single Domain report',
+        error as Error
+      );
+      res.status(500).json({
+        error: 'Failed to generate demo Single Domain report',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+);
+
 // Helper functions
 async function enqueueBackgroundTask(
   jobId: string,
