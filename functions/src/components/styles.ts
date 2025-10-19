@@ -161,6 +161,12 @@ export function getBaseStyles(): string {
         min-height: 100vh;
         page-break-before: always;
       }
+
+      recommendations-page {
+        padding: 40px;
+        min-height: 100vh;
+        page-break-before: always;
+      }
       
       .page-header {
         margin-bottom: 40px;
@@ -576,7 +582,11 @@ export function getBaseStyles(): string {
         
         /* Recommendations page - no top padding on continuation pages */
         .content-page.recommendations-page {
-          padding-top: 100px;
+          padding-top: 160px;;
+        }
+
+        .recommendations-page {
+          padding-top: 160px;;
         }
         
         .running-header {

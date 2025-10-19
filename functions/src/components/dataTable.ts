@@ -172,7 +172,7 @@ export function DomainList({ totalCount, data }: DomainListProps): string {
     ${
       pageIndex === 0
         ? `
-          <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; margin-top: 40px;">
+          <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; margin-top: 60px;">
             <p style="flex-grow: 0; flex-shrink: 0; width: 100%; font-size: 14px; font-weight: 600; text-align: left; color: #333643;">
               All domains (${totalCount.toLocaleString()})
             </p>
@@ -180,7 +180,7 @@ export function DomainList({ totalCount, data }: DomainListProps): string {
           </div>
         `
         : `
-          <div style="page-break-before: always; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; padding-top: 140px;">
+          <div style="page-break-before: always; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; flex-grow: 0; flex-shrink: 0; position: relative; gap: 8px; padding-top: 160px;">
             ${pageDomains.map(renderDomainItem).join('')}
           </div>
         `
