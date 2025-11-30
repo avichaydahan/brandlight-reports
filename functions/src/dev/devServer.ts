@@ -1,7 +1,7 @@
 import express from 'express';
-import { generateTemplate } from '../templates/templatePartnership.js';
 import { generateSingleDomainTemplate } from '../templates/templateSingleDomain.js';
-import { generateTemplate as generateTestTemplate } from '../templates/templateTest.js';
+import { generateTemplate as generateTestPartnershipTemplate } from '../templates/templateTestPartnership.js';
+import { generateTemplate as generateTestSingleDomainTemplate } from '../templates/templateTestSingleDomain.js';
 import { mockPartnershipData, mockSingleDomainData } from './mockData.js';
 import { PDFService } from '../services/pdf.service.js';
 import path from 'path';
@@ -49,17 +49,17 @@ function setupWebSocket(port: number) {
   return wss;
 }
 
-// Serve the generated HTML - Partnership Report
-app.get('/', (req, res) => {
+// Serve Test Partnership Template (clean HTML) - Main route
+app.get(['/', '/test'], (req, res) => {
   try {
-    const html = generateTemplate(mockPartnershipData);
+    const html = generateTestPartnershipTemplate(mockPartnershipData);
     res.send(html);
   } catch (error) {
-    console.error('Error generating template:', error);
+    console.error('Error generating test partnership template:', error);
     res
       .status(500)
       .send(
-        `Error generating template: ${
+        `Error generating test partnership template: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`
       );
@@ -83,17 +83,17 @@ app.get('/single-domain', (req, res) => {
   }
 });
 
-// Serve Test Template (clean HTML)
-app.get('/test', (req, res) => {
+// Serve Test Single Domain Template (clean HTML)
+app.get('/test-single-domain', (req, res) => {
   try {
-    const html = generateTestTemplate();
+    const html = generateTestSingleDomainTemplate(mockSingleDomainData);
     res.send(html);
   } catch (error) {
-    console.error('Error generating test template:', error);
+    console.error('Error generating test single domain template:', error);
     res
       .status(500)
       .send(
-        `Error generating test template: ${
+        `Error generating test single domain template: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`
       );
@@ -171,8 +171,9 @@ async function startServer() {
       console.log(
         `🌐 Single Domain Report: http://localhost:${PORT}/single-domain`
       );
-      console.log(`🧪 Test Template (HTML): http://localhost:${PORT}/test`);
-      console.log(`📄 Test PDF (Clean): http://localhost:${PORT}/test-pdf`);
+      console.log(`🧪 Test Partnership (HTML): http://localhost:${PORT}/test`);
+      console.log(`🧪 Test Single Domain (HTML): http://localhost:${PORT}/test-single-domain`);
+      console.log(`📄 Test Partnership PDF: http://localhost:${PORT}/test-pdf`);
       console.log(`🔌 WebSocket server running on port ${WS_PORT}`);
       console.log('📝 Edit your components and templates to see live changes!');
       console.log('💡 To stop the server, press Ctrl+C');
