@@ -373,35 +373,13 @@ export function generateTemplate(data: PartnershipReportData): string {
     })),
   })}
 
-  <!-- Recommendations section - no manual page breaks -->
-  ${
-    topRecommendations && topRecommendations.length > 0
-      ? `
-    ${TopRecommendations({
-      recommendations: topRecommendations,
-    })}
-    ${
-      allRecommendations && allRecommendations.length > 0
-        ? `
-    <div style="margin-top: 32px;">
-      ${AllRecommendations({
-        recommendations: allRecommendations,
-        totalCount: allRecommendations.length,
-      })}
+  <!-- Recommendations section -->
+  ${topRecommendations?.length ? TopRecommendations({ recommendations: topRecommendations }) : ''}
+  ${allRecommendations?.length ? `
+    <div style="margin-top: 24px;">
+      ${AllRecommendations({ recommendations: allRecommendations, totalCount: allRecommendations.length })}
     </div>
-    `
-        : ''
-    }
-  `
-      : allRecommendations && allRecommendations.length > 0
-      ? `
-    ${AllRecommendations({
-      recommendations: allRecommendations,
-      totalCount: allRecommendations.length,
-    })}
-  `
-      : ''
-  }
+  ` : ''}
 </body>
 </html>`;
 }
