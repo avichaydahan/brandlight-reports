@@ -1,7 +1,9 @@
 import express from 'express';
 import { generateTemplate } from '../templates/templatePartnership.js';
 import { generateSingleDomainTemplate } from '../templates/templateSingleDomain.js';
+import { generateTemplate as generateTestTemplate } from '../templates/templateTest.js';
 import { mockPartnershipData, mockSingleDomainData } from './mockData.js';
+import { PDFService } from '../services/pdf.service.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import chokidar from 'chokidar';
@@ -14,6 +16,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 let PORT = 3000;
 let WS_PORT = 3001;
+
+// PDF Service instance for test PDF generation
+const pdfService = new PDFService();
 
 // Function to find available port
 async function findAvailablePort(startPort: number): Promise<number> {
@@ -78,6 +83,42 @@ app.get('/single-domain', (req, res) => {
   }
 });
 
+// Serve Test Template (clean HTML)
+app.get('/test', (req, res) => {
+  try {
+    const html = generateTestTemplate();
+    res.send(html);
+  } catch (error) {
+    console.error('Error generating test template:', error);
+    res
+      .status(500)
+      .send(
+        `Error generating test template: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+  }
+});
+
+// Generate Test PDF (clean PDF with Puppeteer header/footer)
+app.get('/test-pdf', async (req, res) => {
+  try {
+    const pdfBuffer = await pdfService.generateTestPDF();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="test-report.pdf"');
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating test PDF:', error);
+    res
+      .status(500)
+      .send(
+        `Error generating test PDF: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+  }
+});
+
 // Hot reload endpoint
 app.get('/hot-reload', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
@@ -126,11 +167,13 @@ async function startServer() {
 
     app.listen(PORT, () => {
       console.log(`🚀 Development server running at http://localhost:${PORT}`);
-      console.log(`� Partnership Report: http://localhost:${PORT}`);
+      console.log(`📊 Partnership Report: http://localhost:${PORT}`);
       console.log(
         `🌐 Single Domain Report: http://localhost:${PORT}/single-domain`
       );
-      console.log(`�🔌 WebSocket server running on port ${WS_PORT}`);
+      console.log(`🧪 Test Template (HTML): http://localhost:${PORT}/test`);
+      console.log(`📄 Test PDF (Clean): http://localhost:${PORT}/test-pdf`);
+      console.log(`🔌 WebSocket server running on port ${WS_PORT}`);
       console.log('📝 Edit your components and templates to see live changes!');
       console.log('💡 To stop the server, press Ctrl+C');
     });
