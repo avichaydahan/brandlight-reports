@@ -8,82 +8,59 @@ export interface BarChartProps {
   data: DomainData[];
 }
 
+const CHART_HEIGHT = 200;
+const BAR_MAX_HEIGHT = 180;
+
 export function BarChart({ data }: BarChartProps): string {
-  // Validate that data is provided
-  if (!data || data.length === 0) {
-    throw new Error(
-      'BarChart: data is required and must contain at least one domain'
-    );
+  if (!data?.length) {
+    throw new Error('BarChart: data is required and must contain at least one domain');
   }
 
-  const chartData = data;
-  const maxValue = Math.max(...chartData.map((item) => item.value));
+  const maxValue = Math.max(...data.map((item) => item.value));
+
+  const renderGridLines = () => 
+    Array(6).fill(0).map((_, i) => 
+      `<div style="height: 1px; width: 100%; background: ${i === 5 ? '#EBECF1' : '#F0F1F5'};"></div>`
+    ).join('');
+
+  const renderBar = (item: DomainData) => {
+    const barHeight = Math.round((item.value / maxValue) * BAR_MAX_HEIGHT);
+    return `
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <span style="font-size: 12px; color: #666976;">${item.value}%</span>
+        <div style="width: 24px; height: ${barHeight}px; background: #5B76FE; border-radius: 2px 2px 0 0;"></div>
+      </div>
+    `;
+  };
+
+  const renderIcon = (item: DomainData) => `
+    <div style="width: 24px; height: 24px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+      <img src="https://www.google.com/s2/favicons?domain=${item.icon}&sz=64" alt="${item.name}" style="width: 16px; height: 16px; object-fit: contain;"/>
+    </div>
+  `;
 
   return `
-<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; width: 100%; flex-grow: 0; flex-shrink: 0; position: relative; gap: 24px;">
-  <p style="align-self: stretch; flex-grow: 0; flex-shrink: 0; width: 100%; font-size: 16px; font-weight: 600; text-align: left; color: #333643;">
-    Domains by influence score
-  </p>
-  <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; gap: 0;">
-    <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative;">
+    <div style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+      <p style="font-size: 16px; font-weight: 600; color: #333643; margin: 0;">
+        Domains by influence score
+      </p>
       
-      <!-- Chart area with bars -->
-      <div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; position: relative; height: 232px;">
+      <div style="position: relative; height: ${CHART_HEIGHT + 32}px;">
         <!-- Grid lines -->
-        <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; align-self: stretch; flex-grow: 0; flex-shrink: 0; height: 200px; position: absolute; top: 0; left: 0; right: 0;">
-          <div style="height: 1px; width: 100%; background: #F0F1F5;"></div>
-          <div style="height: 1px; width: 100%; background: #F0F1F5;"></div>
-          <div style="height: 1px; width: 100%; background: #F0F1F5;"></div>
-          <div style="height: 1px; width: 100%; background: #F0F1F5;"></div>
-          <div style="height: 1px; width: 100%; background: #F0F1F5;"></div>
-          <div style="height: 1px; width: 100%; background: #EBECF1;"></div>
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: ${CHART_HEIGHT}px; display: flex; flex-direction: column; justify-content: space-between;">
+          ${renderGridLines()}
         </div>
         
         <!-- Bars -->
-        <div style="display: flex; justify-content: space-around; align-items: flex-end; align-self: stretch; height: 200px; position: relative;">
-          ${chartData
-            .map((item) => {
-              const barHeight = Math.round((item.value / maxValue) * 180); // Adjusted max height
-
-              return `
-              <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px;">
-                <p style="font-size: 12px; text-align: center; color: #666976; margin: 0; line-height: 1;">
-                  ${item.value}%
-                </p>
-                <div style="display: flex; align-items: flex-end; justify-content: center; width: 24px;">
-                  <div style="width: 24px; height: ${barHeight}px; background: #5B76FE; border-radius: 2px 2px 0 0;"></div>
-                </div>
-              </div>
-          `;
-            })
-            .join('')}
+        <div style="position: relative; height: ${CHART_HEIGHT}px; display: flex; justify-content: space-around; align-items: flex-end;">
+          ${data.map(renderBar).join('')}
         </div>
-      </div>
-      
-      <!-- Icons at bottom -->
-      <div style="display: flex; justify-content: space-around; align-items: center; align-self: stretch; flex-grow: 0; flex-shrink: 0; margin-top: 0px;">
-        ${chartData
-          .map((item) => {
-            const domain = item.icon;
-
-            // Use Google's favicon service with sz parameter for better quality
-            // The sz=64 parameter requests a higher resolution favicon
-            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-
-            return `
-        <div style="flex-grow: 0; flex-shrink: 0; width: 24px; height: 24px; position: relative; overflow: hidden; border-radius: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
-          <img 
-            src="${faviconUrl}" 
-            alt="${item.name} favicon" 
-            style="width: 16px; height: 16px; object-fit: contain; display: block;"
-          />
+        
+        <!-- Icons -->
+        <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 8px;">
+          ${data.map(renderIcon).join('')}
         </div>
-        `;
-          })
-          .join('')}
       </div>
     </div>
-  </div>
-</div>
   `;
 }

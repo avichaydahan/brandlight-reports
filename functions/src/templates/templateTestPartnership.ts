@@ -355,26 +355,32 @@ export function generateTemplate(data: PartnershipReportData): string {
     })}
   </div>
 
-  ${DomainList({
-    totalCount: domains.length,
-    data: domains.map((domain) => ({
-      name: domain.name,
-      influenceScore: domain.influenceScore,
-      citationFrequency: `${domain.citationFrequency.toFixed(1)}k`,
-      change: domain.change || 0,
-      monthlyVisits: domain.estMonthlyVisits || '0',
-      citationsToVisits: domain.citationsToVisits || 0,
-      brandMentions: domain.sourcesMentioningBrand || 0,
-      competitorMentions: 0,
-      domainType: domain.domainType || 'Unknown',
-      categories: Array.isArray(domain.categories)
-        ? domain.categories.join(', ')
-        : domain.categories || 'Unknown',
-    })),
-  })}
+  <div style="page-break-before: always;">
+    ${DomainList({
+      totalCount: domains.length,
+      data: domains.map((domain) => ({
+        name: domain.name,
+        influenceScore: domain.influenceScore,
+        citationFrequency: `${domain.citationFrequency.toFixed(1)}k`,
+        change: domain.change || 0,
+        monthlyVisits: domain.estMonthlyVisits || '0',
+        citationsToVisits: domain.citationsToVisits || 0,
+        brandMentions: domain.sourcesMentioningBrand || 0,
+        competitorMentions: 0,
+        domainType: domain.domainType || 'Unknown',
+        categories: Array.isArray(domain.categories)
+          ? domain.categories.join(', ')
+          : domain.categories || 'Unknown',
+      })),
+    })}
+  </div>
 
   <!-- Recommendations section -->
-  ${topRecommendations?.length ? TopRecommendations({ recommendations: topRecommendations }) : ''}
+  ${topRecommendations?.length ? `
+    <div style="page-break-before: always;">
+      ${TopRecommendations({ recommendations: topRecommendations })}
+    </div>
+  ` : ''}
   ${allRecommendations?.length ? `
     <div style="margin-top: 24px;">
       ${AllRecommendations({ recommendations: allRecommendations, totalCount: allRecommendations.length })}
