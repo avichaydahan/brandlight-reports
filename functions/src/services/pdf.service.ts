@@ -341,43 +341,128 @@ export class PDFService {
   }
 
   /**
-   * Generate a clean test PDF with Puppeteer's default header/footer and margins
-   * This is a standalone method that doesn't use any existing templates or styles
+   * Generate a test PDF with cover page (no header/footer) + main content (with header/footer)
    */
   async generateTestPDF(options: PDFOptions = {}): Promise<Buffer> {
     try {
-      logger.info('Generating clean test PDF');
+      logger.info('Generating test PDF with cover page');
 
       if (!this.browser) {
         await this.initialize();
       }
 
-      // Load the clean test template and mock data
-      const templatePath = path.join(
-        __dirname,
-        '..',
-        'templates',
-        'templateTestPartnership.js'
-      );
-      const mockDataPath = path.join(
-        __dirname,
-        '..',
-        'dev',
-        'mockData.js'
-      );
-      const template = await import(templatePath);
-      const { mockPartnershipData } = await import(mockDataPath);
-      const html = template.generateTemplate(mockPartnershipData);
+      // Load template, mock data, and cover component
+      const [template, { mockPartnershipData }, { Cover }] = await Promise.all([
+        import(path.join(__dirname, '..', 'templates', 'templateTestPartnership.js')),
+        import(path.join(__dirname, '..', 'dev', 'mockData.js')),
+        import(path.join(__dirname, '..', 'components', 'cover.js')),
+      ]);
 
-      // Generate PDF with clean settings
-      const pdfBuffer = await this.generateCleanPDFFromHTML(html, options);
+      // Generate both PDFs in parallel
+      const [coverPdf, mainPdf] = await Promise.all([
+        this.generateCoverPDF(Cover, mockPartnershipData, options),
+        this.generateMainContentPDF(template.generateTemplate(mockPartnershipData), options),
+      ]);
 
-      logger.info('Clean test PDF generated successfully');
-      return pdfBuffer;
+      // Merge PDFs: cover first, then main content
+      const mergedPdf = await this.mergePDFs(coverPdf, mainPdf);
+
+      logger.info('Test PDF generated successfully');
+      return mergedPdf;
     } catch (error) {
       logger.error('Failed to generate test PDF', error as Error);
       throw error;
     }
+  }
+
+  /**
+   * Generate cover page PDF without header/footer (full-bleed design)
+   */
+  private async generateCoverPDF(
+    Cover: (props: { timeperiod: string; dateIssued?: string }) => string,
+    data: any,
+    options: PDFOptions
+  ): Promise<Buffer> {
+    if (!this.browser) throw new Error('Browser not initialized');
+
+    const page = await this.browser.newPage();
+
+    try {
+      const dateIssued = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; }
+    @page { size: A4; margin: 0; }
+  </style>
+</head>
+<body>${Cover({ timeperiod: data.timeperiod || 'Jul 30, 2025 - Aug 30, 2025', dateIssued })}</body>
+</html>`;
+
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for fonts
+
+      const pdfBuffer = await page.pdf({
+        format: options.format || 'A4',
+        printBackground: true,
+        preferCSSPageSize: true,
+        displayHeaderFooter: false,
+        margin: { top: '0', right: '0', bottom: '0', left: '0' },
+      });
+
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await page.close();
+    }
+  }
+
+  /**
+   * Generate main content PDF with header/footer
+   */
+  private async generateMainContentPDF(
+    html: string,
+    options: PDFOptions
+  ): Promise<Buffer> {
+    return this.generateCleanPDFFromHTML(html, options);
+  }
+
+  /**
+   * Merge multiple PDFs into one
+   */
+  private async mergePDFs(coverPdf: Buffer, mainPdf: Buffer): Promise<Buffer> {
+    const [coverDoc, mainDoc] = await Promise.all([
+      PDFDocument.load(coverPdf),
+      PDFDocument.load(mainPdf),
+    ]);
+
+    const mergedDoc = await PDFDocument.create();
+
+    // Copy all pages from both documents
+    const [coverPages, mainPages] = await Promise.all([
+      mergedDoc.copyPages(coverDoc, coverDoc.getPageIndices()),
+      mergedDoc.copyPages(mainDoc, mainDoc.getPageIndices()),
+    ]);
+
+    coverPages.forEach((page) => mergedDoc.addPage(page));
+    mainPages.forEach((page) => mergedDoc.addPage(page));
+
+    // Set metadata
+    mergedDoc.setTitle('Partnership Domains Report');
+    mergedDoc.setCreator('BrandLight PDF Generator');
+    mergedDoc.setProducer('Advanced PDF Service');
+    mergedDoc.setCreationDate(new Date());
+
+    return Buffer.from(await mergedDoc.save());
   }
 
   /**

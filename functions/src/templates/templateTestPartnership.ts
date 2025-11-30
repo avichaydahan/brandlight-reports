@@ -7,7 +7,6 @@
 
 import { PartnershipReportData } from '../data.js';
 import {
-  Cover,
   SummaryCards,
   DonutChart,
   BarChart,
@@ -254,13 +253,6 @@ function getCleanStyles(): string {
       
       /* Print Styles - let Puppeteer handle page breaks */
       @media print {
-        body { 
-        }
-        
-        .cover-page {
-          page-break-after: always;
-        }
-        
         .chart-container, 
         .summary-card {
           page-break-inside: avoid;
@@ -323,14 +315,6 @@ export function generateTemplate(data: PartnershipReportData): string {
     value: domain.influenceScore,
     icon: domain.name,
   }));
-
-  // Format the current date for "Date issued"
-  const currentDate = new Date();
-  const dateIssued = currentDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 
   return `<!DOCTYPE html>
 <html lang="en">
