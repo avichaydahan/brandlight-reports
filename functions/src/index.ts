@@ -6,6 +6,9 @@ import { PDFService } from './services/pdf.service.js';
 import { createLogger } from './utils/logger.js';
 import { config } from './config/index.js';
 
+// Export Brandlight integration endpoints
+export { generateReport, brandlightHealthCheck } from './tasks/index.js';
+
 const logger = createLogger('HTTPFunctions');
 
 // Set global options for all functions

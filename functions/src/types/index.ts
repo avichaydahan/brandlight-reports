@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Re-export Brandlight types
+export * from './brandlight.js';
+
 // Base job schema
 export const JobSchema = z.object({
   id: z.string(),
