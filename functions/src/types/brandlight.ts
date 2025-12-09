@@ -9,15 +9,39 @@ import { z } from 'zod';
 // Task/Download Types
 // ============================================================================
 
+// Download Manager statuses (from client)
+export const DOWNLOAD_STATUS = {
+  IN_PROGRESS: 'IN-PROGRESS',
+  DONE: 'DONE',
+  PENDING: 'PENDING',
+  READY_FOR_DOWNLOAD: 'READY-FOR-DOWNLOAD',
+  ERROR: 'ERROR',
+} as const;
+
 export const DownloadStatusSchema = z.enum([
   'PENDING',
-  'PROCESSING',
+  'IN-PROGRESS',
+  'DONE',
   'READY-FOR-DOWNLOAD',
-  'FAILED',
-  'EXPIRED',
+  'ERROR',
 ]);
 
 export type DownloadStatus = z.infer<typeof DownloadStatusSchema>;
+
+// Report Types
+export const REPORT_TYPE = {
+  JSON_EXPORT: 'json-export',
+  PARTNERSHIP: 'partnership',
+  SINGLE_DOMAIN: 'single-domain',
+} as const;
+
+export const ReportTypeSchema = z.enum([
+  'json-export',
+  'partnership',
+  'single-domain',
+]);
+
+export type ReportType = z.infer<typeof ReportTypeSchema>;
 
 export const DownloadTypeSchema = z.enum([
   'QUERIES',
@@ -111,6 +135,8 @@ export const ExportRequestSchema = z.object({
   amount: z.number().default(100),
   filters: FiltersSchema.optional(),
   viewId: z.string().nullable().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 
 export type ExportRequest = z.infer<typeof ExportRequestSchema>;
@@ -195,7 +221,9 @@ export const GenerateReportRequestSchema = z.object({
   brandId: z.string(),
   downloadId: z.string(), // Can be UUID or custom identifier
   downloadType: DownloadTypeSchema.optional(),
-  // Export parameters for fetching data
+  // Required report type: 'json-export', 'partnership', or 'single-domain'
+  reportType: ReportTypeSchema,
+  // Export parameters for fetching data (required for json-export type)
   exportParams: ExportRequestSchema.optional(),
   // Optional metadata
   metadata: z.object({
@@ -207,6 +235,16 @@ export const GenerateReportRequestSchema = z.object({
 });
 
 export type GenerateReportRequest = z.infer<typeof GenerateReportRequestSchema>;
+
+// Paginated export response for JSON export
+export interface PaginatedExportData {
+  items: unknown[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  hasMore: boolean;
+}
 
 // ============================================================================
 // Brandlight API Configuration

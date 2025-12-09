@@ -7,9 +7,9 @@ import {
   GenerateReportRequestSchema,
   GenerateReportRequest,
   BrandlightApiError,
-  ExportResponse,
+  DOWNLOAD_STATUS,
+  REPORT_TYPE,
 } from '../types/brandlight.js';
-import { mockSingleDomainData } from '../dev/mockData.js';
 
 const logger = createLogger('ReportTasks');
 
@@ -19,9 +19,9 @@ const logger = createLogger('ReportTasks');
  * This endpoint is called by Brandlight's server when a user requests a report.
  * 
  * Flow:
- * 1. Receive request with tenantId, brandId, downloadId
- * 2. Fetch report data from Brandlight's export API
- * 3. Generate PDF report
+ * 1. Receive request with tenantId, brandId, downloadId, and required reportType
+ * 2. Fetch report data from Brandlight's export API (with pagination for large datasets)
+ * 3. Generate PDF report based on reportType
  * 4. Upload to Firebase Storage
  * 5. Update Brandlight with READY-FOR-DOWNLOAD status and download URL
  * 
@@ -30,10 +30,16 @@ const logger = createLogger('ReportTasks');
  *   "tenantId": "T2qIKkwHMJCRhvZ3MfvTYyJ3sHRv",
  *   "brandId": "f1882611-750b-4b0d-a1bd-ac780680a1ce",
  *   "downloadId": "f59a1d5e-bf42-43c4-b1c5-ee2e254bc658",
- *   "downloadType": "QUERIES",
- *   "exportParams": { ... optional filter parameters ... },
+ *   "reportType": "json-export" | "partnership" | "single-domain", // REQUIRED
+ *   "downloadType": "QUERIES", // optional
+ *   "exportParams": { ... export parameters with pagination ... },
  *   "metadata": { ... optional metadata ... }
  * }
+ * 
+ * Report Types:
+ * - "json-export": Renders raw JSON data as formatted text in PDF
+ * - "partnership": Partnership domains report with charts and visualizations
+ * - "single-domain": Single domain influence report
  */
 export const generateReport = onRequest(
   {
@@ -60,6 +66,18 @@ export const generateReport = onRequest(
       
       if (!parseResult.success) {
         logger.error('Invalid request body', undefined, { errors: parseResult.error.errors });
+        
+        // Check specifically for missing reportType
+        const reportTypeError = parseResult.error.errors.find(e => e.path.includes('reportType'));
+        if (reportTypeError) {
+          res.status(400).json({
+            error: 'Missing required field: reportType',
+            message: `reportType is required. Valid values: ${Object.values(REPORT_TYPE).join(', ')}`,
+            details: parseResult.error.errors,
+          });
+          return;
+        }
+        
         res.status(400).json({
           error: 'Invalid request body',
           details: parseResult.error.errors,
@@ -73,6 +91,7 @@ export const generateReport = onRequest(
         tenantId: requestData.tenantId,
         brandId: requestData.brandId,
         downloadId: requestData.downloadId,
+        reportType: requestData.reportType,
       });
 
     } catch (err) {
@@ -86,59 +105,106 @@ export const generateReport = onRequest(
     }
 
     try {
-      // Step 1: Update status to PROCESSING
-      logger.info('Updating status to PROCESSING');
-      await brandlightApi.updateDownload(
-        requestData.tenantId,
-        requestData.downloadId,
-        {
-          tenantId: requestData.tenantId,
-          brandId: requestData.brandId,
-          status: 'PROCESSING',
-        }
-      );
+      // Step 1: Update status to IN-PROGRESS
+      logger.info('Updating status to IN-PROGRESS');
+      // await brandlightApi.updateDownload(
+      //   requestData.tenantId,
+      //   requestData.downloadId,
+      //   {
+      //     tenantId: requestData.tenantId,
+      //     brandId: requestData.brandId,
+      //     status: DOWNLOAD_STATUS.IN_PROGRESS,
+      //   }
+      // );
 
-      // Step 2: Fetch data from Brandlight API
-      logger.info('Fetching export data from Brandlight API');
-      let reportData: ExportResponse | null = null;
-      
-      try {
-        if (requestData.exportParams) {
-          reportData = await brandlightApi.getExportDataWithBody(
+      let pdfBuffer: Buffer;
+
+      // Step 2 & 3: Fetch data and generate PDF based on report type
+      switch (requestData.reportType) {
+        case REPORT_TYPE.JSON_EXPORT: {
+          // JSON Export: Fetch data with pagination and render as text
+          if (!requestData.exportParams) {
+            throw new Error('exportParams is required for json-export report type');
+          }
+
+          logger.info('Generating JSON Export report with pagination');
+          
+          const { data, totalFetched, pages } = await brandlightApi.getExportDataPaginated(
             requestData.tenantId,
             requestData.brandId,
             requestData.exportParams
           );
-        } else {
-          reportData = await brandlightApi.getExportData(
-            requestData.tenantId,
-            requestData.brandId
+
+          logger.info('Export data fetched successfully', {
+            totalFetched,
+            pages,
+          });
+
+          // Generate JSON Export PDF
+          pdfBuffer = await pdfService.generateJsonExportPDF(
+            data,
+            {
+              title: requestData.metadata?.reportTitle || 'Data Export',
+              tenantId: requestData.tenantId,
+              brandId: requestData.brandId,
+              generatedAt: new Date().toISOString(),
+              totalItems: totalFetched,
+              startDate: requestData.exportParams.startDate,
+              endDate: requestData.exportParams.endDate,
+            },
+            { format: 'A4' }
           );
+          break;
         }
-        
-        logger.info('Export data fetched successfully', {
-          hasQueries: !!reportData.queries,
-          queryCount: reportData.queries?.length || 0,
-        });
-      } catch (apiError) {
-        logger.warn('Failed to fetch export data, using mock data for now', apiError as Error);
-        // For now, we'll use mock data if the API fails
-        // TODO: Remove this once the API is fully integrated
-        reportData = null;
+
+        case REPORT_TYPE.PARTNERSHIP: {
+          // Partnership Report: Use existing template with visualizations
+          logger.info('Generating Partnership report');
+          
+          // Fetch data if exportParams provided, otherwise use defaults
+          if (requestData.exportParams) {
+            const reportData = await brandlightApi.getExportDataWithBody(
+              requestData.tenantId,
+              requestData.brandId,
+              requestData.exportParams
+            );
+            logger.info('Partnership data fetched', {
+              hasQueries: !!reportData.queries,
+              queryCount: reportData.queries?.length || 0,
+            });
+          }
+
+          // Generate Partnership PDF (currently uses mock data)
+          pdfBuffer = await pdfService.generateTestPDF({ format: 'A4' });
+          break;
+        }
+
+        case REPORT_TYPE.SINGLE_DOMAIN: {
+          // Single Domain Report: Use existing template with domain-specific data
+          logger.info('Generating Single Domain report');
+          
+          // Fetch data if exportParams provided
+          if (requestData.exportParams) {
+            const reportData = await brandlightApi.getExportDataWithBody(
+              requestData.tenantId,
+              requestData.brandId,
+              requestData.exportParams
+            );
+            logger.info('Single Domain data fetched', {
+              hasQueries: !!reportData.queries,
+              queryCount: reportData.queries?.length || 0,
+            });
+          }
+
+          // Generate Single Domain PDF (currently uses mock data)
+          pdfBuffer = await pdfService.generateTestSingleDomainPDF({ format: 'A4' });
+          break;
+        }
+
+        default: {
+          throw new Error(`Unknown report type: ${requestData.reportType}. Valid types: ${Object.values(REPORT_TYPE).join(', ')}`);
+        }
       }
-
-      // Step 3: Transform data and generate PDF
-      logger.info('Generating PDF report');
-      
-      // TODO: Transform Brandlight data to our report format
-      // For now, we use mock data until we know the exact data structure
-      const transformedData = reportData 
-        ? transformBrandlightData(reportData, requestData.metadata)
-        : mockSingleDomainData;
-
-      const pdfBuffer = await pdfService.generateTestSingleDomainPDF({
-        format: 'A4',
-      });
 
       // Step 4: Upload PDF to Firebase Storage
       const fileName = `reports/${requestData.tenantId}/${requestData.brandId}/${requestData.downloadId}.pdf`;
@@ -148,33 +214,36 @@ export const generateReport = onRequest(
         tenantId: requestData.tenantId,
         brandId: requestData.brandId,
         downloadId: requestData.downloadId,
-        reportType: requestData.downloadType || 'QUERIES',
+        reportType: requestData.reportType,
+        downloadType: requestData.downloadType || 'EXPORT',
         generatedAt: new Date().toISOString(),
       });
 
       // Step 5: Update Brandlight with READY-FOR-DOWNLOAD status
       logger.info('Updating status to READY-FOR-DOWNLOAD');
-      await brandlightApi.updateDownload(
-        requestData.tenantId,
-        requestData.downloadId,
-        {
-          tenantId: requestData.tenantId,
-          brandId: requestData.brandId,
-          status: 'READY-FOR-DOWNLOAD',
-          downloadUrl,
-        }
-      );
+      // await brandlightApi.updateDownload(
+      //   requestData.tenantId,
+      //   requestData.downloadId,
+      //   {
+      //     tenantId: requestData.tenantId,
+      //     brandId: requestData.brandId,
+      //     status: DOWNLOAD_STATUS.READY_FOR_DOWNLOAD,
+      //     downloadUrl,
+      //   }
+      // );
 
       // Return success response
       res.json({
         success: true,
         downloadId: requestData.downloadId,
+        reportType: requestData.reportType,
         downloadUrl,
         message: 'Report generated successfully',
       });
 
       logger.info('Report generation completed successfully', {
         downloadId: requestData.downloadId,
+        reportType: requestData.reportType,
         downloadUrl,
       });
 
@@ -182,20 +251,20 @@ export const generateReport = onRequest(
       const error = err as Error;
       logger.error('Failed to generate report', error);
 
-      // Try to update status to FAILED
+      // Try to update status to ERROR
       try {
-        await brandlightApi.updateDownload(
-          requestData.tenantId,
-          requestData.downloadId,
-          {
-            tenantId: requestData.tenantId,
-            brandId: requestData.brandId,
-            status: 'FAILED',
-            error: error.message || 'Unknown error',
-          }
-        );
+        // await brandlightApi.updateDownload(
+        //   requestData.tenantId,
+        //   requestData.downloadId,
+        //   {
+        //     tenantId: requestData.tenantId,
+        //     brandId: requestData.brandId,
+        //     status: DOWNLOAD_STATUS.ERROR,
+        //     error: error.message || 'Unknown error',
+        //   }
+        // );
       } catch (updateError) {
-        logger.error('Failed to update status to FAILED', updateError as Error);
+        logger.error('Failed to update status to ERROR', updateError as Error);
       }
 
       // Return error response
@@ -207,29 +276,6 @@ export const generateReport = onRequest(
     }
   }
 );
-
-/**
- * Transform Brandlight export data to our report format
- * This is a placeholder - needs to be updated based on actual data structure
- */
-function transformBrandlightData(
-  exportData: ExportResponse,
-  metadata?: GenerateReportRequest['metadata']
-) {
-  // TODO: Implement actual transformation once we know the data structure
-  // For now, return mock data structure
-  
-  logger.info('Transforming Brandlight data', {
-    hasQueries: !!exportData.queries,
-    hasEngines: !!exportData.engines,
-    hasCategories: !!exportData.categories,
-    metadata,
-  });
-
-  // Return the mock data for now
-  // This will be replaced with actual transformation logic
-  return mockSingleDomainData;
-}
 
 /**
  * Health check endpoint for Brandlight integration

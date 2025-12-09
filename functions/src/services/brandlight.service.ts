@@ -125,7 +125,9 @@ export class BrandlightApiService {
     const token = await this.getAuthToken();
     const url = `${this.baseUrl}${endpoint}`;
 
-    logger.info(`Making ${method} request to ${endpoint}`);
+    logger.info(`Making ${method} request to ${endpoint}`, { 
+      body: body ? JSON.stringify(body) : undefined 
+    });
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -251,45 +253,124 @@ export class BrandlightApiService {
 
   /**
    * Fetch queries/report data for export
-   * GET /api/v1/tenant/{tenantId}/queries/{brandId}/export
+   * POST /api/v1/tenant/{tenantId}/queries/{brandId}/export
+   * Note: Using POST with body because API requires tenantId in request body
    */
   async getExportData(
     tenantId: string,
     brandId: string,
     params?: Partial<ExportRequest>
   ): Promise<ExportResponse> {
-    // Build query string from params if provided
-    let endpoint = `/api/v1/tenant/${tenantId}/queries/${brandId}/export`;
+    const endpoint = `/api/v1/tenant/${tenantId}/queries/${brandId}/export`;
     
-    if (params) {
-      const queryParams = new URLSearchParams();
+    // Build request body with required tenantId and brandId
+    const requestBody: Partial<ExportRequest> = {
+      tenantId,
+      brandId,
+      engineIds: params?.engineIds || [],
+      categoryIds: params?.categoryIds || [],
+      personaIds: params?.personaIds || [],
+      locationIds: params?.locationIds || [],
+      start: params?.start ?? 0,
+      amount: params?.amount ?? 100,
+      ...params,
+    };
+
+    return this.request<ExportResponse>('POST', endpoint, requestBody);
+  }
+
+  /**
+   * Fetch all export data with pagination
+   * Handles large datasets by fetching in pages and combining results
+   * Uses the start and amount from the request for pagination
+   * @param tenantId - Tenant ID
+   * @param brandId - Brand ID
+   * @param request - Export request with pagination params (start, amount)
+   * @returns Combined export response with all pages of data
+   */
+  async getExportDataPaginated(
+    tenantId: string,
+    brandId: string,
+    request: ExportRequest
+  ): Promise<{ data: unknown[]; totalFetched: number; pages: number }> {
+    const allData: unknown[] = [];
+    const startOffset = request.start || 0;
+    const totalAmount = request.amount || 100;
+    // Use amount as page size - each request fetches 'amount' items
+    const pageSize = totalAmount;
+    
+    let currentStart = startOffset;
+    let pageCount = 0;
+    let hasMore = true;
+
+    logger.info('Starting paginated export', {
+      tenantId,
+      brandId,
+      startOffset,
+      totalAmount,
+    });
+
+    while (hasMore) {
+      const pageRequest: ExportRequest = {
+        ...request,
+        tenantId,
+        brandId,
+        start: currentStart,
+        amount: pageSize,
+      };
+
+      logger.info(`Fetching page ${pageCount + 1}`, {
+        start: currentStart,
+        amount: pageSize,
+      });
+
+      const response = await this.request<ExportResponse>(
+        'POST',
+        `/api/v1/tenant/${tenantId}/queries/${brandId}/export`,
+        pageRequest
+      );
+
+      // Handle the response - could be queries array or other data structure
+      const pageData = response.queries || response.metadata || response;
       
-      if (params.start !== undefined) {
-        queryParams.append('start', params.start.toString());
-      }
-      if (params.amount !== undefined) {
-        queryParams.append('amount', params.amount.toString());
-      }
-      if (params.engineIds?.length) {
-        queryParams.append('engineIds', params.engineIds.join(','));
-      }
-      if (params.categoryIds?.length) {
-        queryParams.append('categoryIds', params.categoryIds.join(','));
-      }
-      if (params.personaIds?.length) {
-        queryParams.append('personaIds', params.personaIds.join(','));
-      }
-      if (params.locationIds?.length) {
-        queryParams.append('locationIds', params.locationIds.join(','));
+      if (Array.isArray(pageData)) {
+        allData.push(...pageData);
+        
+        // If we got fewer items than requested, we've reached the end
+        if (pageData.length < pageSize) {
+          logger.info('Reached end of data', { 
+            fetchedInPage: pageData.length, 
+            requested: pageSize 
+          });
+          hasMore = false;
+        } else {
+          // Move to next page
+          currentStart += pageSize;
+          pageCount++;
+        }
+      } else {
+        // If response is not an array, add it as a single item
+        allData.push(pageData);
+        hasMore = false;
       }
 
-      const queryString = queryParams.toString();
-      if (queryString) {
-        endpoint += `?${queryString}`;
+      // Safety check to prevent infinite loops
+      if (pageCount > 1000) {
+        logger.warn('Pagination safety limit reached');
+        hasMore = false;
       }
     }
 
-    return this.request<ExportResponse>('GET', endpoint);
+    logger.info('Paginated export complete', {
+      totalFetched: allData.length,
+      pages: pageCount + 1,
+    });
+
+    return {
+      data: allData,
+      totalFetched: allData.length,
+      pages: pageCount + 1,
+    };
   }
 
   /**
@@ -301,10 +382,19 @@ export class BrandlightApiService {
     brandId: string,
     request: ExportRequest
   ): Promise<ExportResponse> {
+    // Ensure tenantId and brandId are in the request body
+    const requestBody: ExportRequest = {
+      ...request,
+      tenantId,
+      brandId,
+    };
+
+    console.log('getExportDataWithBody', requestBody);
+
     return this.request<ExportResponse>(
       'POST',
       `/api/v1/tenant/${tenantId}/queries/${brandId}/export`,
-      request
+      requestBody
     );
   }
 

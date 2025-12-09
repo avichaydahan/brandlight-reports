@@ -112,6 +112,263 @@ export class PDFService {
   }
 
   /**
+   * Generate a JSON Export PDF - renders JSON data as formatted text
+   * Used for exporting raw query data in a readable PDF format
+   */
+  async generateJsonExportPDF(
+    data: unknown[],
+    metadata?: {
+      title?: string;
+      tenantId?: string;
+      brandId?: string;
+      generatedAt?: string;
+      totalItems?: number;
+      startDate?: string;
+      endDate?: string;
+    },
+    options: PDFOptions = {}
+  ): Promise<Buffer> {
+    try {
+      logger.info('Generating JSON Export PDF', {
+        itemCount: data.length,
+        metadata,
+      });
+
+      if (!this.browser) {
+        await this.initialize();
+      }
+
+      const html = this.generateJsonExportHTML(data, metadata);
+      const pdfBuffer = await this.generateJsonExportContentPDF(html, metadata, options);
+
+      logger.info('JSON Export PDF generated successfully');
+      return pdfBuffer;
+    } catch (error) {
+      logger.error('Failed to generate JSON Export PDF', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate HTML for JSON export
+   */
+  private generateJsonExportHTML(
+    data: unknown[],
+    metadata?: {
+      title?: string;
+      tenantId?: string;
+      brandId?: string;
+      generatedAt?: string;
+      totalItems?: number;
+      startDate?: string;
+      endDate?: string;
+    }
+  ): string {
+    const title = metadata?.title || 'Data Export';
+    const generatedAt = metadata?.generatedAt || new Date().toISOString();
+    const totalItems = metadata?.totalItems || data.length;
+
+    // Format each item as a JSON block
+    const itemsHtml = data.map((item, index) => `
+      <div class="json-item">
+        <pre class="json-content">${this.escapeHtml(JSON.stringify(item, null, 2))}</pre>
+      </div>
+    `).join('');
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #333;
+      background: #fff;
+    }
+    
+    .container {
+      padding: 20px 0;
+    }
+    
+    .metadata-section {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .metadata-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+    }
+    
+    .metadata-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .metadata-item {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .metadata-label {
+      font-weight: 600;
+      color: #666;
+    }
+    
+    .metadata-value {
+      color: #333;
+    }
+    
+    .json-item {
+      background: #fafbfc;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    
+    .item-header {
+      background: #f1f3f5;
+      padding: 10px 16px;
+      font-weight: 600;
+      color: #24292e;
+      border-bottom: 1px solid #e1e4e8;
+    }
+    
+    .json-content {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      padding: 16px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #24292e;
+      background: #fff;
+    }
+    
+    @page {
+      size: A4;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="items-section">
+      ${itemsHtml}
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  /**
+   * Helper to escape HTML special characters
+   */
+  private escapeHtml(text: string): string {
+    const map: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    };
+    return text.replace(/[&<>"']/g, (char) => map[char] || char);
+  }
+
+  /**
+   * Generate PDF content for JSON export
+   */
+  private async generateJsonExportContentPDF(
+    html: string,
+    metadata?: {
+      title?: string;
+      tenantId?: string;
+      brandId?: string;
+      generatedAt?: string;
+      totalItems?: number;
+      startDate?: string;
+      endDate?: string;
+    },
+    options: PDFOptions = {}
+  ): Promise<Buffer> {
+    if (!this.browser) throw new Error('Browser not initialized');
+
+    const page = await this.browser.newPage();
+
+    try {
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+
+      const pdfBuffer = await page.pdf({
+        format: options.format || 'A4',
+        printBackground: true,
+        preferCSSPageSize: false,
+        displayHeaderFooter: false,
+        headerTemplate: this.getJsonExportHeaderTemplate(metadata),
+        footerTemplate: this.getFooterTemplate(),
+        margin: {
+          top: '140px',
+          right: '40px',
+          bottom: '84px',
+          left: '40px',
+        },
+      });
+
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await page.close();
+    }
+  }
+
+  /**
+   * Get header template for JSON export PDF
+   */
+  private getJsonExportHeaderTemplate(metadata?: {
+    title?: string;
+    startDate?: string;
+    endDate?: string;
+  }): string {
+    const title = metadata?.title || 'Data Export';
+    const dateRange = metadata?.startDate && metadata?.endDate
+      ? `${new Date(metadata.startDate).toLocaleDateString()} - ${new Date(metadata.endDate).toLocaleDateString()}`
+      : new Date().toLocaleDateString();
+
+    return `
+      <style>
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      </style>
+      <div style="position: absolute; top: 0; left: 0; z-index: 999; width: 100%; padding: 24px 40px; background-color: #ffffff !important; -webkit-print-color-adjust: exact; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p style="font-size: 18px; font-weight: 700; color: #333643 !important; margin: 0;">
+              ${title}
+            </p>
+            <p style="font-size: 12px; color: #666666 !important; margin: 4px 0 0 0;">
+              ${dateRange}
+            </p>
+          </div>
+          <span style="font-size: 10px; color: #666666 !important; white-space: nowrap;">
+            Page <span class="pageNumber"></span> of <span class="totalPages"></span>
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
    * Generate cover page PDF without header/footer (full-bleed design)
    */
   private async generateCoverPDF(
