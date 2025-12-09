@@ -1,0 +1,55 @@
+{
+  "name": "report-pdf-gcp-functions",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc -p ./",
+    "build:watch": "tsc -p ./ --watch",
+    "start": "npm run build && functions-framework --target=demoTestReport --port=8080",
+    "deploy": "npm run build && gcloud functions deploy generate-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=generateReport --trigger-http --allow-unauthenticated --memory=2Gi --timeout=540s",
+    "deploy:all": "npm run build && npm run deploy:demo-test && npm run deploy:demo-single-domain && npm run deploy:generate-report && npm run deploy:health-check",
+    "deploy:demo-test": "gcloud functions deploy demo-test-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=demoTestReport --trigger-http --allow-unauthenticated --memory=1Gi --timeout=60s",
+    "deploy:demo-single-domain": "gcloud functions deploy demo-test-single-domain-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=demoTestSingleDomainReport --trigger-http --allow-unauthenticated --memory=1Gi --timeout=60s",
+    "deploy:generate-report": "gcloud functions deploy generate-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=generateReport --trigger-http --allow-unauthenticated --memory=2Gi --timeout=540s",
+    "deploy:health-check": "gcloud functions deploy brandlight-health-check --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=brandlightHealthCheck --trigger-http --allow-unauthenticated --memory=256Mi --timeout=30s",
+    "dev": "NODE_ENV=development tsx watch src/dev/devServer.ts",
+    "dev:clean": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true && npm run dev",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "test": "echo 'Tests not yet implemented'",
+    "clean": "rm -rf lib"
+  },
+  "dependencies": {
+    "@descope/node-sdk": "^1.7.19",
+    "@google-cloud/functions-framework": "^3.4.0",
+    "@google-cloud/storage": "^7.7.0",
+    "@google-cloud/firestore": "^7.3.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^17.2.3",
+    "handlebars": "^4.7.8",
+    "node-fetch": "^3.3.2",
+    "pdf-lib": "^1.17.1",
+    "puppeteer": "^22.14.0",
+    "winston": "^3.11.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.8.0",
+    "@types/node-fetch": "^2.6.13",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "chokidar": "^3.5.3",
+    "eslint": "^8.52.0",
+    "express": "^4.18.2",
+    "nodemon": "^3.0.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.2",
+    "ws": "^8.14.2"
+  }
+}
