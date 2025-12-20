@@ -4,68 +4,16 @@
  * Content automatically breaks to new pages when needed
  * NO Cover, RunningHeader, Footer, or manual page-break handling
  */
-
-import {
-  SummaryCards,
-  type SummaryCardProps,
-} from '../components/summaryCards.js';
+import { SummaryCards, } from '../components/summaryCards.js';
 import { BarChart } from '../components/barChart.js';
-import { generatePieChart, type PieChartData } from '../components/pieChart.js';
-import {
-  generateTopCitedContentTable,
-  type TopCitedContentTableData,
-} from '../components/topCitedContentTable.js';
-import {
-  generateTopSourcesMentioningCompetitors,
-  type TopSourcesMentioningCompetitorsData,
-} from '../components/topSourcesMentioningCompetitors.js';
-import {
-  AllRecommendations,
-  type AllRecommendationsProps,
-} from '../components/allRecommendations.js';
-import {
-  generateRecommendedActions,
-  type RecommendedActionsData,
-} from '../components/recommendedActions.js';
-import { DomainList, type DomainListProps } from '../components/dataTable.js';
-
-export interface SingleDomainReportData {
-  // Header data (used by Puppeteer header template)
-  domainName: string;
-  domainLogo: string;
-  timePeriod: string;
-
-  // Summary cards (4 boxes)
-  summaryCards: SummaryCardProps[];
-
-  // Bar chart data
-  barChartData: {
-    name: string;
-    value: number;
-    icon: string;
-  }[];
-
-  // Pie chart data
-  pieChartData: PieChartData;
-
-  // Top cited content table
-  topCitedContent: TopCitedContentTableData;
-
-  // Top sources mentioning competitors
-  competitorSources: TopSourcesMentioningCompetitorsData;
-
-  // Recommendations
-  recommendations: AllRecommendationsProps;
-
-  // Recommended actions
-  recommendedActions: RecommendedActionsData;
-
-  // Sources list
-  sources: DomainListProps;
-}
-
-function getCleanStyles(): string {
-  return `
+import { generatePieChart } from '../components/pieChart.js';
+import { generateTopCitedContentTable, } from '../components/topCitedContentTable.js';
+import { generateTopSourcesMentioningCompetitors, } from '../components/topSourcesMentioningCompetitors.js';
+import { AllRecommendations, } from '../components/allRecommendations.js';
+import { generateRecommendedActions, } from '../components/recommendedActions.js';
+import { DomainList } from '../components/dataTable.js';
+function getCleanStyles() {
+    return `
     <style>
       body {
         font-family: 'DM Sans', sans-serif;
@@ -241,9 +189,8 @@ function getCleanStyles(): string {
     </style>
   `;
 }
-
-export function generateTemplate(data: SingleDomainReportData): string {
-  return `<!DOCTYPE html>
+export function generateTemplate(data) {
+    return `<!DOCTYPE html>
   <html lang="en">
   <head>
     <meta charset="UTF-8">
@@ -299,6 +246,5 @@ export function generateTemplate(data: SingleDomainReportData): string {
   </body>
   </html>`;
 }
-
 // Export alias for PDFService compatibility
 export const generateSingleDomainTemplate = generateTemplate;

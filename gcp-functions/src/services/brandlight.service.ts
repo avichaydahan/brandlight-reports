@@ -401,9 +401,7 @@ export class BrandlightApiService {
    * Check if the API is properly configured and reachable
    */
   async healthCheck(): Promise<{ isHealthy: boolean; error?: string; debug?: any }> {
-    const accessKeyPreview = this.accessKey 
-      ? `${this.accessKey.substring(0, 20)}... (length: ${this.accessKey.length})`
-      : 'EMPTY';
+    const accessKeyPreview = this.accessKey;
     
     logger.info('Health check starting', { 
       accessKeyPreview,

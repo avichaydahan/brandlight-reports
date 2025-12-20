@@ -1,191 +1,143 @@
-import puppeteer, { Browser } from 'puppeteer-core';
+import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import { PDFDocument } from 'pdf-lib';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { createLogger } from '../utils/logger.js';
-
 const logger = createLogger('PDFService');
-
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 // Check if running locally (development) or in cloud
 const isLocal = process.env.NODE_ENV === 'development' || !process.env.K_SERVICE;
-
-export interface PDFOptions {
-  format?: 'A4' | 'A3' | 'Letter';
-}
-
 export class PDFService {
-  private browser: Browser | null = null;
-
-  private async initialize(): Promise<void> {
-    try {
-      logger.info('Initializing PDF service');
-      
-      if (isLocal) {
-        // Local development - use system Chrome
-        this.browser = await puppeteer.launch({
-          headless: true,
-          executablePath: process.platform === 'darwin' 
-            ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-            : process.platform === 'win32'
-            ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-            : '/usr/bin/google-chrome',
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-          ],
-        });
-      } else {
-        // Cloud environment - use @sparticuz/chromium
-        this.browser = await puppeteer.launch({
-          args: chromium.args,
-          defaultViewport: { width: 1920, height: 1080 },
-          executablePath: await chromium.executablePath(),
-          headless: true,
-        });
-      }
-      
-      logger.info('PDF service initialized successfully');
-    } catch (error) {
-      logger.error('Failed to initialize PDF service', error as Error);
-      throw error;
+    browser = null;
+    async initialize() {
+        try {
+            logger.info('Initializing PDF service');
+            if (isLocal) {
+                // Local development - use system Chrome
+                this.browser = await puppeteer.launch({
+                    headless: true,
+                    executablePath: process.platform === 'darwin'
+                        ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+                        : process.platform === 'win32'
+                            ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+                            : '/usr/bin/google-chrome',
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-gpu',
+                    ],
+                });
+            }
+            else {
+                // Cloud environment - use @sparticuz/chromium
+                this.browser = await puppeteer.launch({
+                    args: chromium.args,
+                    defaultViewport: { width: 1920, height: 1080 },
+                    executablePath: await chromium.executablePath(),
+                    headless: true,
+                });
+            }
+            logger.info('PDF service initialized successfully');
+        }
+        catch (error) {
+            logger.error('Failed to initialize PDF service', error);
+            throw error;
+        }
     }
-  }
-
-  async cleanup(): Promise<void> {
-    if (this.browser) {
-      await this.browser.close();
-      this.browser = null;
-      logger.info('PDF service cleaned up');
+    async cleanup() {
+        if (this.browser) {
+            await this.browser.close();
+            this.browser = null;
+            logger.info('PDF service cleaned up');
+        }
     }
-  }
-
-  /**
-   * Generate a test PDF with cover page (no header/footer) + main content (with header/footer)
-   */
-  async generateTestPDF(options: PDFOptions = {}): Promise<Buffer> {
-    try {
-      logger.info('Generating test PDF with cover page');
-
-      if (!this.browser) {
-        await this.initialize();
-      }
-
-      const [template, { mockPartnershipData }, { Cover }] = await Promise.all([
-        import(path.join(__dirname, '..', 'templates', 'templateTestPartnership.js')),
-        import(path.join(__dirname, '..', 'dev', 'mockData.js')),
-        import(path.join(__dirname, '..', 'components', 'cover.js')),
-      ]);
-
-      const [coverPdf, mainPdf] = await Promise.all([
-        this.generateCoverPDF(Cover, mockPartnershipData, options),
-        this.generatePartnershipMainContentPDF(template.generateTemplate(mockPartnershipData), options),
-      ]);
-
-      const mergedPdf = await this.mergePDFs(coverPdf, mainPdf, 'Partnership Domains Report');
-
-      logger.info('Test PDF generated successfully');
-      return mergedPdf;
-    } catch (error) {
-      logger.error('Failed to generate test PDF', error as Error);
-      throw error;
+    /**
+     * Generate a test PDF with cover page (no header/footer) + main content (with header/footer)
+     */
+    async generateTestPDF(options = {}) {
+        try {
+            logger.info('Generating test PDF with cover page');
+            if (!this.browser) {
+                await this.initialize();
+            }
+            const [template, { mockPartnershipData }, { Cover }] = await Promise.all([
+                import(path.join(__dirname, '..', 'templates', 'templateTestPartnership.js')),
+                import(path.join(__dirname, '..', 'dev', 'mockData.js')),
+                import(path.join(__dirname, '..', 'components', 'cover.js')),
+            ]);
+            const [coverPdf, mainPdf] = await Promise.all([
+                this.generateCoverPDF(Cover, mockPartnershipData, options),
+                this.generatePartnershipMainContentPDF(template.generateTemplate(mockPartnershipData), options),
+            ]);
+            const mergedPdf = await this.mergePDFs(coverPdf, mainPdf, 'Partnership Domains Report');
+            logger.info('Test PDF generated successfully');
+            return mergedPdf;
+        }
+        catch (error) {
+            logger.error('Failed to generate test PDF', error);
+            throw error;
+        }
     }
-  }
-
-  /**
-   * Generate a test PDF for Single Domain with cover page (no header/footer) + main content (with header/footer)
-   */
-  async generateTestSingleDomainPDF(options: PDFOptions = {}): Promise<Buffer> {
-    try {
-      logger.info('Generating test Single Domain PDF with cover page');
-
-      if (!this.browser) {
-        await this.initialize();
-      }
-
-      const [template, { mockSingleDomainData }, { Cover }] = await Promise.all([
-        import(path.join(__dirname, '..', 'templates', 'templateTestSingleDomain.js')),
-        import(path.join(__dirname, '..', 'dev', 'mockData.js')),
-        import(path.join(__dirname, '..', 'components', 'cover.js')),
-      ]);
-
-      const [coverPdf, mainPdf] = await Promise.all([
-        this.generateCoverPDF(Cover, mockSingleDomainData, options),
-        this.generateSingleDomainMainContentPDF(template.generateTemplate(mockSingleDomainData), mockSingleDomainData, options),
-      ]);
-
-      const mergedPdf = await this.mergePDFs(coverPdf, mainPdf, 'Single Domain Influence Report');
-
-      logger.info('Test Single Domain PDF generated successfully');
-      return mergedPdf;
-    } catch (error) {
-      logger.error('Failed to generate test Single Domain PDF', error as Error);
-      throw error;
+    /**
+     * Generate a test PDF for Single Domain with cover page (no header/footer) + main content (with header/footer)
+     */
+    async generateTestSingleDomainPDF(options = {}) {
+        try {
+            logger.info('Generating test Single Domain PDF with cover page');
+            if (!this.browser) {
+                await this.initialize();
+            }
+            const [template, { mockSingleDomainData }, { Cover }] = await Promise.all([
+                import(path.join(__dirname, '..', 'templates', 'templateTestSingleDomain.js')),
+                import(path.join(__dirname, '..', 'dev', 'mockData.js')),
+                import(path.join(__dirname, '..', 'components', 'cover.js')),
+            ]);
+            const [coverPdf, mainPdf] = await Promise.all([
+                this.generateCoverPDF(Cover, mockSingleDomainData, options),
+                this.generateSingleDomainMainContentPDF(template.generateTemplate(mockSingleDomainData), mockSingleDomainData, options),
+            ]);
+            const mergedPdf = await this.mergePDFs(coverPdf, mainPdf, 'Single Domain Influence Report');
+            logger.info('Test Single Domain PDF generated successfully');
+            return mergedPdf;
+        }
+        catch (error) {
+            logger.error('Failed to generate test Single Domain PDF', error);
+            throw error;
+        }
     }
-  }
-
-  /**
-   * Generate a JSON Export PDF - renders JSON data as formatted text
-   */
-  async generateJsonExportPDF(
-    data: unknown[],
-    metadata?: {
-      title?: string;
-      tenantId?: string;
-      brandId?: string;
-      generatedAt?: string;
-      totalItems?: number;
-      startDate?: string;
-      endDate?: string;
-    },
-    options: PDFOptions = {}
-  ): Promise<Buffer> {
-    try {
-      logger.info('Generating JSON Export PDF', {
-        itemCount: data.length,
-        metadata,
-      });
-
-      if (!this.browser) {
-        await this.initialize();
-      }
-
-      const html = this.generateJsonExportHTML(data, metadata);
-      const pdfBuffer = await this.generateJsonExportContentPDF(html, metadata, options);
-
-      logger.info('JSON Export PDF generated successfully');
-      return pdfBuffer;
-    } catch (error) {
-      logger.error('Failed to generate JSON Export PDF', error as Error);
-      throw error;
+    /**
+     * Generate a JSON Export PDF - renders JSON data as formatted text
+     */
+    async generateJsonExportPDF(data, metadata, options = {}) {
+        try {
+            logger.info('Generating JSON Export PDF', {
+                itemCount: data.length,
+                metadata,
+            });
+            if (!this.browser) {
+                await this.initialize();
+            }
+            const html = this.generateJsonExportHTML(data, metadata);
+            const pdfBuffer = await this.generateJsonExportContentPDF(html, metadata, options);
+            logger.info('JSON Export PDF generated successfully');
+            return pdfBuffer;
+        }
+        catch (error) {
+            logger.error('Failed to generate JSON Export PDF', error);
+            throw error;
+        }
     }
-  }
-
-  private generateJsonExportHTML(
-    data: unknown[],
-    metadata?: {
-      title?: string;
-      tenantId?: string;
-      brandId?: string;
-      generatedAt?: string;
-      totalItems?: number;
-      startDate?: string;
-      endDate?: string;
-    }
-  ): string {
-    const itemsHtml = data.map((item) => `
+    generateJsonExportHTML(data, metadata) {
+        const itemsHtml = data.map((item) => `
       <div class="json-item">
         <pre class="json-content">${this.escapeHtml(JSON.stringify(item, null, 2))}</pre>
       </div>
     `).join('');
-
-    return `<!DOCTYPE html>
+        return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -229,73 +181,53 @@ export class PDFService {
   </div>
 </body>
 </html>`;
-  }
-
-  private escapeHtml(text: string): string {
-    const map: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    };
-    return text.replace(/[&<>"']/g, (char) => map[char] || char);
-  }
-
-  private async generateJsonExportContentPDF(
-    html: string,
-    metadata?: {
-      title?: string;
-      startDate?: string;
-      endDate?: string;
-    },
-    options: PDFOptions = {}
-  ): Promise<Buffer> {
-    if (!this.browser) throw new Error('Browser not initialized');
-
-    const page = await this.browser.newPage();
-
-    try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-
-      const pdfBuffer = await page.pdf({
-        format: options.format || 'A4',
-        printBackground: true,
-        preferCSSPageSize: false,
-        displayHeaderFooter: false,
-        margin: {
-          top: '140px',
-          right: '40px',
-          bottom: '84px',
-          left: '40px',
-        },
-      });
-
-      return Buffer.from(pdfBuffer);
-    } finally {
-      await page.close();
     }
-  }
-
-  private async generateCoverPDF(
-    Cover: (props: { timeperiod: string; dateIssued?: string }) => string,
-    data: { timeperiod?: string; timePeriod?: string },
-    options: PDFOptions
-  ): Promise<Buffer> {
-    if (!this.browser) throw new Error('Browser not initialized');
-
-    const page = await this.browser.newPage();
-
-    try {
-      const dateIssued = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-
-      const timeperiod = data.timeperiod || data.timePeriod || 'Jul 30, 2025 - Aug 30, 2025';
-
-      const html = `<!DOCTYPE html>
+    escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+        };
+        return text.replace(/[&<>"']/g, (char) => map[char] || char);
+    }
+    async generateJsonExportContentPDF(html, metadata, options = {}) {
+        if (!this.browser)
+            throw new Error('Browser not initialized');
+        const page = await this.browser.newPage();
+        try {
+            await page.setContent(html, { waitUntil: 'networkidle0' });
+            const pdfBuffer = await page.pdf({
+                format: options.format || 'A4',
+                printBackground: true,
+                preferCSSPageSize: false,
+                displayHeaderFooter: false,
+                margin: {
+                    top: '140px',
+                    right: '40px',
+                    bottom: '84px',
+                    left: '40px',
+                },
+            });
+            return Buffer.from(pdfBuffer);
+        }
+        finally {
+            await page.close();
+        }
+    }
+    async generateCoverPDF(Cover, data, options) {
+        if (!this.browser)
+            throw new Error('Browser not initialized');
+        const page = await this.browser.newPage();
+        try {
+            const dateIssued = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            });
+            const timeperiod = data.timeperiod || data.timePeriod || 'Jul 30, 2025 - Aug 30, 2025';
+            const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -309,115 +241,93 @@ export class PDFService {
 </head>
 <body>${Cover({ timeperiod, dateIssued })}</body>
 </html>`;
-
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const pdfBuffer = await page.pdf({
-        format: options.format || 'A4',
-        printBackground: true,
-        preferCSSPageSize: true,
-        displayHeaderFooter: false,
-        margin: { top: '0', right: '0', bottom: '0', left: '0' },
-      });
-
-      return Buffer.from(pdfBuffer);
-    } finally {
-      await page.close();
+            await page.setContent(html, { waitUntil: 'networkidle0' });
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            const pdfBuffer = await page.pdf({
+                format: options.format || 'A4',
+                printBackground: true,
+                preferCSSPageSize: true,
+                displayHeaderFooter: false,
+                margin: { top: '0', right: '0', bottom: '0', left: '0' },
+            });
+            return Buffer.from(pdfBuffer);
+        }
+        finally {
+            await page.close();
+        }
     }
-  }
-
-  private async generatePartnershipMainContentPDF(
-    html: string,
-    options: PDFOptions
-  ): Promise<Buffer> {
-    if (!this.browser) throw new Error('Browser not initialized');
-
-    const page = await this.browser.newPage();
-
-    try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-
-      const pdfBuffer = await page.pdf({
-        format: options.format || 'A4',
-        printBackground: true,
-        preferCSSPageSize: false,
-        displayHeaderFooter: true,
-        headerTemplate: this.getPartnershipHeaderTemplate(),
-        footerTemplate: this.getFooterTemplate(),
-        margin: {
-          top: '148px',
-          right: '40px',
-          bottom: '64px',
-          left: '40px',
-        },
-      });
-
-      return Buffer.from(pdfBuffer);
-    } finally {
-      await page.close();
+    async generatePartnershipMainContentPDF(html, options) {
+        if (!this.browser)
+            throw new Error('Browser not initialized');
+        const page = await this.browser.newPage();
+        try {
+            await page.setContent(html, { waitUntil: 'networkidle0' });
+            const pdfBuffer = await page.pdf({
+                format: options.format || 'A4',
+                printBackground: true,
+                preferCSSPageSize: false,
+                displayHeaderFooter: true,
+                headerTemplate: this.getPartnershipHeaderTemplate(),
+                footerTemplate: this.getFooterTemplate(),
+                margin: {
+                    top: '148px',
+                    right: '40px',
+                    bottom: '64px',
+                    left: '40px',
+                },
+            });
+            return Buffer.from(pdfBuffer);
+        }
+        finally {
+            await page.close();
+        }
     }
-  }
-
-  private async generateSingleDomainMainContentPDF(
-    html: string,
-    data: { domainName?: string; timePeriod?: string; category?: string },
-    options: PDFOptions
-  ): Promise<Buffer> {
-    if (!this.browser) throw new Error('Browser not initialized');
-
-    const page = await this.browser.newPage();
-
-    try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-
-      const pdfBuffer = await page.pdf({
-        format: options.format || 'A4',
-        printBackground: true,
-        preferCSSPageSize: false,
-        displayHeaderFooter: true,
-        headerTemplate: this.getSingleDomainHeaderTemplate(data),
-        footerTemplate: this.getFooterTemplate(),
-        margin: {
-          top: '132px',
-          right: '40px',
-          bottom: '64px',
-          left: '40px',
-        },
-      });
-
-      return Buffer.from(pdfBuffer);
-    } finally {
-      await page.close();
+    async generateSingleDomainMainContentPDF(html, data, options) {
+        if (!this.browser)
+            throw new Error('Browser not initialized');
+        const page = await this.browser.newPage();
+        try {
+            await page.setContent(html, { waitUntil: 'networkidle0' });
+            const pdfBuffer = await page.pdf({
+                format: options.format || 'A4',
+                printBackground: true,
+                preferCSSPageSize: false,
+                displayHeaderFooter: true,
+                headerTemplate: this.getSingleDomainHeaderTemplate(data),
+                footerTemplate: this.getFooterTemplate(),
+                margin: {
+                    top: '132px',
+                    right: '40px',
+                    bottom: '64px',
+                    left: '40px',
+                },
+            });
+            return Buffer.from(pdfBuffer);
+        }
+        finally {
+            await page.close();
+        }
     }
-  }
-
-  private async mergePDFs(coverPdf: Buffer, mainPdf: Buffer, title: string): Promise<Buffer> {
-    const [coverDoc, mainDoc] = await Promise.all([
-      PDFDocument.load(coverPdf),
-      PDFDocument.load(mainPdf),
-    ]);
-
-    const mergedDoc = await PDFDocument.create();
-
-    const [coverPages, mainPages] = await Promise.all([
-      mergedDoc.copyPages(coverDoc, coverDoc.getPageIndices()),
-      mergedDoc.copyPages(mainDoc, mainDoc.getPageIndices()),
-    ]);
-
-    coverPages.forEach((page) => mergedDoc.addPage(page));
-    mainPages.forEach((page) => mergedDoc.addPage(page));
-
-    mergedDoc.setTitle(title);
-    mergedDoc.setCreator('BrandLight PDF Generator - GCP');
-    mergedDoc.setProducer('Advanced PDF Service');
-    mergedDoc.setCreationDate(new Date());
-
-    return Buffer.from(await mergedDoc.save());
-  }
-
-  private getPartnershipHeaderTemplate(): string {
-    return `
+    async mergePDFs(coverPdf, mainPdf, title) {
+        const [coverDoc, mainDoc] = await Promise.all([
+            PDFDocument.load(coverPdf),
+            PDFDocument.load(mainPdf),
+        ]);
+        const mergedDoc = await PDFDocument.create();
+        const [coverPages, mainPages] = await Promise.all([
+            mergedDoc.copyPages(coverDoc, coverDoc.getPageIndices()),
+            mergedDoc.copyPages(mainDoc, mainDoc.getPageIndices()),
+        ]);
+        coverPages.forEach((page) => mergedDoc.addPage(page));
+        mainPages.forEach((page) => mergedDoc.addPage(page));
+        mergedDoc.setTitle(title);
+        mergedDoc.setCreator('BrandLight PDF Generator - GCP');
+        mergedDoc.setProducer('Advanced PDF Service');
+        mergedDoc.setCreationDate(new Date());
+        return Buffer.from(await mergedDoc.save());
+    }
+    getPartnershipHeaderTemplate() {
+        return `
       <style>
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       </style>
@@ -461,14 +371,12 @@ export class PDFService {
         </div>
       </div>
     `;
-  }
-
-  private getSingleDomainHeaderTemplate(data: { domainName?: string; timePeriod?: string; category?: string }): string {
-    const domainName = data.domainName || 'Single Domain';
-    const timePeriod = data.timePeriod || 'Jul 30, 2025 - Aug 30, 2025';
-    const category = data.category || 'General';
-
-    return `
+    }
+    getSingleDomainHeaderTemplate(data) {
+        const domainName = data.domainName || 'Single Domain';
+        const timePeriod = data.timePeriod || 'Jul 30, 2025 - Aug 30, 2025';
+        const category = data.category || 'General';
+        return `
       <style>
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       </style>
@@ -505,10 +413,9 @@ export class PDFService {
         </div>
       </div>
     `;
-  }
-
-  private getFooterTemplate(): string {
-    return `
+    }
+    getFooterTemplate() {
+        return `
       <style>
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
       </style>
@@ -532,5 +439,5 @@ export class PDFService {
         </div>
       </div>
     `;
-  }
+    }
 }

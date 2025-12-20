@@ -4,20 +4,9 @@
  * Content automatically breaks to new pages when needed
  * NO RunningHeader, Footer, or manual page-break handling
  */
-
-import { PartnershipReportData, PartnershipDomainData, DomainTypeInfluence } from '../data';
-import { CategoryData } from '../components/donutChart';
-import {
-  SummaryCards,
-  DonutChart,
-  BarChart,
-  DomainList,
-  TopRecommendations,
-  AllRecommendations,
-} from '../components/index.js';
-
-function getCleanStyles(): string {
-  return `
+import { SummaryCards, DonutChart, BarChart, DomainList, TopRecommendations, AllRecommendations, } from '../components/index.js';
+function getCleanStyles() {
+    return `
     <style>
       
       body {
@@ -263,61 +252,40 @@ function getCleanStyles(): string {
     </style>
   `;
 }
-
-export function generateTemplate(data: PartnershipReportData): string {
-  const {
-    timeperiod,
-    engines,
-    category,
-    summary,
-    influenceByDomainType,
-    domains,
-    topRecommendations,
-    allRecommendations,
-  } = data;
-
-  // Sort domains by influence score for the bar chart
-  const sortedDomains = [...domains].sort(
-    (a, b) => b.influenceScore - a.influenceScore
-  );
-  const topDomains = sortedDomains.slice(0, 10);
-
-  // Prepare data for components - use summary values directly for consistency
-  const summaryCardsData = [
-    {
-      label: 'Total domains analyzed',
-      value: summary.totalDomainsAnalyzed.toLocaleString(),
-    },
-    {
-      label: 'Top opportunity',
-      value: summary.topOpportunity || 'N/A',
-      domain: summary.topOpportunity,
-    },
-    {
-      label: 'Most influential domain',
-      value: summary.mostInfluentialDomain || 'N/A',
-      domain: summary.mostInfluentialDomain,
-    },
-  ];
-
-  const donutChartData: CategoryData[] = (Object.entries(influenceByDomainType) as [string, DomainTypeInfluence][]).map(
-    ([category, data], index) => ({
-      category,
-      percentage: data.percentage,
-      domains: data.domains.toString(),
-      color: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6b7280'][
-        index % 6
-      ],
-    })
-  );
-
-  const barChartData = topDomains.map((domain) => ({
-    name: domain.name.split('.')[0],
-    value: domain.influenceScore,
-    icon: domain.name,
-  }));
-
-  return `<!DOCTYPE html>
+export function generateTemplate(data) {
+    const { timeperiod, engines, category, summary, influenceByDomainType, domains, topRecommendations, allRecommendations, } = data;
+    // Sort domains by influence score for the bar chart
+    const sortedDomains = [...domains].sort((a, b) => b.influenceScore - a.influenceScore);
+    const topDomains = sortedDomains.slice(0, 10);
+    // Prepare data for components - use summary values directly for consistency
+    const summaryCardsData = [
+        {
+            label: 'Total domains analyzed',
+            value: summary.totalDomainsAnalyzed.toLocaleString(),
+        },
+        {
+            label: 'Top opportunity',
+            value: summary.topOpportunity || 'N/A',
+            domain: summary.topOpportunity,
+        },
+        {
+            label: 'Most influential domain',
+            value: summary.mostInfluentialDomain || 'N/A',
+            domain: summary.mostInfluentialDomain,
+        },
+    ];
+    const donutChartData = Object.entries(influenceByDomainType).map(([category, data], index) => ({
+        category,
+        percentage: data.percentage,
+        domains: data.domains.toString(),
+        color: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#6b7280'][index % 6],
+    }));
+    const barChartData = topDomains.map((domain) => ({
+        name: domain.name.split('.')[0],
+        value: domain.influenceScore,
+        icon: domain.name,
+    }));
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -332,31 +300,31 @@ export function generateTemplate(data: PartnershipReportData): string {
   ${SummaryCards({ cards: summaryCardsData })}
   <div class="charts-section">
     ${BarChart({
-      data: barChartData,
+        data: barChartData,
     })}
     
     ${DonutChart({
-      data: donutChartData,
+        data: donutChartData,
     })}
   </div>
 
   <div style="page-break-before: always;">
     ${DomainList({
-      totalCount: domains.length,
-      data: domains.map((domain: PartnershipDomainData) => ({
-        name: domain.name,
-        influenceScore: domain.influenceScore,
-        citationFrequency: `${domain.citationFrequency.toFixed(1)}k`,
-        change: domain.change || 0,
-        monthlyVisits: domain.estMonthlyVisits || '0',
-        citationsToVisits: domain.citationsToVisits || 0,
-        brandMentions: domain.sourcesMentioningBrand || 0,
-        competitorMentions: 0,
-        domainType: domain.domainType || 'Unknown',
-        categories: Array.isArray(domain.categories)
-          ? domain.categories.join(', ')
-          : domain.categories || 'Unknown',
-      })),
+        totalCount: domains.length,
+        data: domains.map((domain) => ({
+            name: domain.name,
+            influenceScore: domain.influenceScore,
+            citationFrequency: `${domain.citationFrequency.toFixed(1)}k`,
+            change: domain.change || 0,
+            monthlyVisits: domain.estMonthlyVisits || '0',
+            citationsToVisits: domain.citationsToVisits || 0,
+            brandMentions: domain.sourcesMentioningBrand || 0,
+            competitorMentions: 0,
+            domainType: domain.domainType || 'Unknown',
+            categories: Array.isArray(domain.categories)
+                ? domain.categories.join(', ')
+                : domain.categories || 'Unknown',
+        })),
     })}
   </div>
 
