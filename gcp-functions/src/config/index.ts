@@ -46,7 +46,7 @@ export const brandlightConfig = {
   
   // Access Key for authentication (exchanged for JWT via Descope)
   // This key should be stored securely in environment variables or GCP Secret Manager
-  accessKey: process.env.BRANDLIGHT_ACCESS_KEY || 'K36EtVM4ZoPUt6OSsyWpr9z1s1VtoK9iRV6DQ9OBKC0JIgWzR08kMSiDMpONbU0McU5z8Mp',
+  accessKey: process.env.BRANDLIGHT_ACCESS_KEY || 'K37z0AeZprQ9mVhERisY9mbqeLu95hCHUw7aPFQWsNb89PWXHN41zeQbzXwjzWNhSo79kO0',
   
   // Request timeout in milliseconds
   timeout: parseInt(process.env.BRANDLIGHT_API_TIMEOUT || '30000', 10),
