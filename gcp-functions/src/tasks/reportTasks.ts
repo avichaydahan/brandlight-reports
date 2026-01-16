@@ -30,6 +30,15 @@ export async function generateReport(req: Request, res: Response): Promise<void>
   const storageService = new StorageService();
   const pdfService = new PDFService();
 
+  // Extract Authorization header and pass it to Brandlight API service
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    // Remove 'Bearer ' prefix if present, then set the token
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    brandlightApi.setExternalAuthToken(token);
+    logger.info('Using Authorization header from incoming request');
+  }
+
   // Only accept POST requests
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -86,17 +95,20 @@ export async function generateReport(req: Request, res: Response): Promise<void>
     // Step 1: Update status to IN-PROGRESS
     logger.info('Updating status to IN-PROGRESS');
 
-    let pdfBuffer: Buffer;
+    let fileBuffer: Buffer;
+    let fileName: string;
+    let isJsonExport = false;
 
-    // Step 2 & 3: Fetch data and generate PDF based on report type
+    // Step 2 & 3: Fetch data and generate file based on report type
     switch (requestData.reportType) {
       case REPORT_TYPE.JSON_EXPORT: {
-        // JSON Export: Fetch data with pagination and render as text
+        // JSON Export: Fetch data with pagination and return as JSON file
         if (!requestData.exportParams) {
           throw new Error('exportParams is required for json-export report type');
         }
 
-        logger.info('Generating JSON Export report with pagination');
+        logger.info('Generating JSON Export with pagination');
+        isJsonExport = true;
         
         const { data, totalFetched, pages } = await brandlightApi.getExportDataPaginated(
           requestData.tenantId,
@@ -109,10 +121,9 @@ export async function generateReport(req: Request, res: Response): Promise<void>
           pages,
         });
 
-        // Generate JSON Export PDF
-        pdfBuffer = await pdfService.generateJsonExportPDF(
-          data,
-          {
+        // Create JSON export object with metadata
+        const jsonExport = {
+          metadata: {
             title: requestData.metadata?.reportTitle || 'Data Export',
             tenantId: requestData.tenantId,
             brandId: requestData.brandId,
@@ -121,9 +132,37 @@ export async function generateReport(req: Request, res: Response): Promise<void>
             startDate: requestData.exportParams.startDate,
             endDate: requestData.exportParams.endDate,
           },
-          { format: 'A4' }
+          data,
+        };
+
+        // Generate filename and upload JSON
+        fileName = storageService.generateJsonFileName(
+          requestData.downloadId,
+          requestData.reportType
         );
-        break;
+
+        logger.info('Uploading JSON to GCS', { fileName });
+
+        const downloadUrl = await storageService.uploadJSON(jsonExport, fileName, {
+          tenantId: requestData.tenantId,
+          brandId: requestData.brandId,
+          reportType: requestData.reportType,
+          downloadId: requestData.downloadId,
+          generatedAt: new Date().toISOString(),
+        });
+
+        logger.info('JSON uploaded successfully', { downloadUrl });
+
+        // Return success response for JSON export
+        res.json({
+          success: true,
+          downloadId: requestData.downloadId,
+          reportType: requestData.reportType,
+          downloadUrl,
+          fileName,
+          status: DOWNLOAD_STATUS.READY_FOR_DOWNLOAD,
+        });
+        return;
       }
 
       case REPORT_TYPE.PARTNERSHIP: {
@@ -144,7 +183,7 @@ export async function generateReport(req: Request, res: Response): Promise<void>
         }
 
         // Generate Partnership PDF (currently uses mock data)
-        pdfBuffer = await pdfService.generateTestPDF({ format: 'A4' });
+        fileBuffer = await pdfService.generateTestPDF({ format: 'A4' });
         break;
       }
 
@@ -166,7 +205,7 @@ export async function generateReport(req: Request, res: Response): Promise<void>
         }
 
         // Generate Single Domain PDF (currently uses mock data)
-        pdfBuffer = await pdfService.generateTestSingleDomainPDF({ format: 'A4' });
+        fileBuffer = await pdfService.generateTestSingleDomainPDF({ format: 'A4' });
         break;
       }
 
@@ -175,14 +214,14 @@ export async function generateReport(req: Request, res: Response): Promise<void>
     }
 
     // Step 4: Upload PDF to Google Cloud Storage
-    const fileName = storageService.generateFileName(
+    fileName = storageService.generateFileName(
       requestData.downloadId,
       requestData.reportType
     );
     
     logger.info('Uploading PDF to GCS', { fileName });
     
-    const downloadUrl = await storageService.uploadPDF(pdfBuffer, fileName, {
+    const downloadUrl = await storageService.uploadPDF(fileBuffer, fileName, {
       tenantId: requestData.tenantId,
       brandId: requestData.brandId,
       reportType: requestData.reportType,

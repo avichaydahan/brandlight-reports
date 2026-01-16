@@ -254,9 +254,13 @@ export class PDFService {
     if (!this.browser) throw new Error('Browser not initialized');
 
     const page = await this.browser.newPage();
+    page.setDefaultNavigationTimeout(120000); // 2 minutes timeout
 
     try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      // Use domcontentloaded instead of networkidle2 to avoid waiting for external fonts
+      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 120000 });
+      // Small delay to allow styles to apply
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const pdfBuffer = await page.pdf({
         format: options.format || 'A4',
@@ -285,6 +289,7 @@ export class PDFService {
     if (!this.browser) throw new Error('Browser not initialized');
 
     const page = await this.browser.newPage();
+    page.setDefaultNavigationTimeout(120000); // 2 minutes timeout
 
     try {
       const dateIssued = new Date().toLocaleDateString('en-US', {
@@ -310,7 +315,8 @@ export class PDFService {
 <body>${Cover({ timeperiod, dateIssued })}</body>
 </html>`;
 
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 120000 });
+      // Allow time for styles to apply
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const pdfBuffer = await page.pdf({
@@ -334,9 +340,13 @@ export class PDFService {
     if (!this.browser) throw new Error('Browser not initialized');
 
     const page = await this.browser.newPage();
+    page.setDefaultNavigationTimeout(120000); // 2 minutes timeout
 
     try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      // Use domcontentloaded instead of networkidle2 to avoid waiting for external fonts
+      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 120000 });
+      // Small delay to allow styles to apply
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const pdfBuffer = await page.pdf({
         format: options.format || 'A4',
@@ -367,9 +377,13 @@ export class PDFService {
     if (!this.browser) throw new Error('Browser not initialized');
 
     const page = await this.browser.newPage();
+    page.setDefaultNavigationTimeout(120000); // 2 minutes timeout
 
     try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      // Use domcontentloaded instead of networkidle2 to avoid waiting for external fonts
+      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 120000 });
+      // Small delay to allow styles to apply
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const pdfBuffer = await page.pdf({
         format: options.format || 'A4',

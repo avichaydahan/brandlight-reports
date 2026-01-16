@@ -27,6 +27,7 @@ export class BrandlightApiService {
   private jwtExpiry: number | null = null;
   private timeout: number;
   private descopeClient: ReturnType<typeof DescopeClient> | null = null;
+  private externalAuthToken: string | null = null;
 
   constructor() {
     this.baseUrl = brandlightConfig.apiBaseUrl;
@@ -46,10 +47,28 @@ export class BrandlightApiService {
   }
 
   /**
+   * Set external auth token from incoming request
+   * When set, this token will be used instead of exchanging access key
+   */
+  setExternalAuthToken(token: string | null): void {
+    this.externalAuthToken = token;
+    if (token) {
+      logger.info('External auth token set - will use for API requests');
+    }
+  }
+
+  /**
    * Get or refresh JWT token using Descope
    * Exchanges the access key for a fresh JWT token
    */
   private async getAuthToken(): Promise<string> {
+    // If external token is set, use it directly
+    if (this.externalAuthToken) {
+      const tokenPreview = this.externalAuthToken.substring(0, 50) + '...';
+      logger.info('Using external auth token from incoming request', { tokenPreview });
+      return this.externalAuthToken;
+    }
+
     // Check if we have a valid JWT (with 1 minute buffer)
     if (this.jwt && this.jwtExpiry && Date.now() < this.jwtExpiry - 60000) {
       logger.info('Using cached JWT token', { 
@@ -124,8 +143,10 @@ export class BrandlightApiService {
   ): Promise<T> {
     const token = await this.getAuthToken();
     const url = `${this.baseUrl}${endpoint}`;
+    const tokenPreview = token.substring(0, 30) + '...';
 
-    logger.info(`Making ${method} request to ${endpoint}`, { 
+    logger.info(`Making ${method} request to ${url}`, { 
+      tokenPreview,
       body: body ? JSON.stringify(body) : undefined 
     });
 

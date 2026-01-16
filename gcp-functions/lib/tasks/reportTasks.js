@@ -20,6 +20,14 @@ export async function generateReport(req, res) {
     const brandlightApi = getBrandlightApiService();
     const storageService = new StorageService();
     const pdfService = new PDFService();
+    // Extract Authorization header and pass it to Brandlight API service
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        // Remove 'Bearer ' prefix if present, then set the token
+        const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+        brandlightApi.setExternalAuthToken(token);
+        logger.info('Using Authorization header from incoming request');
+    }
     // Only accept POST requests
     if (req.method !== 'POST') {
         res.status(405).json({ error: 'Method not allowed' });
@@ -67,31 +75,57 @@ export async function generateReport(req, res) {
     try {
         // Step 1: Update status to IN-PROGRESS
         logger.info('Updating status to IN-PROGRESS');
-        let pdfBuffer;
-        // Step 2 & 3: Fetch data and generate PDF based on report type
+        let fileBuffer;
+        let fileName;
+        let isJsonExport = false;
+        // Step 2 & 3: Fetch data and generate file based on report type
         switch (requestData.reportType) {
             case REPORT_TYPE.JSON_EXPORT: {
-                // JSON Export: Fetch data with pagination and render as text
+                // JSON Export: Fetch data with pagination and return as JSON file
                 if (!requestData.exportParams) {
                     throw new Error('exportParams is required for json-export report type');
                 }
-                logger.info('Generating JSON Export report with pagination');
+                logger.info('Generating JSON Export with pagination');
+                isJsonExport = true;
                 const { data, totalFetched, pages } = await brandlightApi.getExportDataPaginated(requestData.tenantId, requestData.brandId, requestData.exportParams);
                 logger.info('Export data fetched successfully', {
                     totalFetched,
                     pages,
                 });
-                // Generate JSON Export PDF
-                pdfBuffer = await pdfService.generateJsonExportPDF(data, {
-                    title: requestData.metadata?.reportTitle || 'Data Export',
+                // Create JSON export object with metadata
+                const jsonExport = {
+                    metadata: {
+                        title: requestData.metadata?.reportTitle || 'Data Export',
+                        tenantId: requestData.tenantId,
+                        brandId: requestData.brandId,
+                        generatedAt: new Date().toISOString(),
+                        totalItems: totalFetched,
+                        startDate: requestData.exportParams.startDate,
+                        endDate: requestData.exportParams.endDate,
+                    },
+                    data,
+                };
+                // Generate filename and upload JSON
+                fileName = storageService.generateJsonFileName(requestData.downloadId, requestData.reportType);
+                logger.info('Uploading JSON to GCS', { fileName });
+                const downloadUrl = await storageService.uploadJSON(jsonExport, fileName, {
                     tenantId: requestData.tenantId,
                     brandId: requestData.brandId,
+                    reportType: requestData.reportType,
+                    downloadId: requestData.downloadId,
                     generatedAt: new Date().toISOString(),
-                    totalItems: totalFetched,
-                    startDate: requestData.exportParams.startDate,
-                    endDate: requestData.exportParams.endDate,
-                }, { format: 'A4' });
-                break;
+                });
+                logger.info('JSON uploaded successfully', { downloadUrl });
+                // Return success response for JSON export
+                res.json({
+                    success: true,
+                    downloadId: requestData.downloadId,
+                    reportType: requestData.reportType,
+                    downloadUrl,
+                    fileName,
+                    status: DOWNLOAD_STATUS.READY_FOR_DOWNLOAD,
+                });
+                return;
             }
             case REPORT_TYPE.PARTNERSHIP: {
                 // Partnership Report: Use existing template with visualizations
@@ -105,7 +139,7 @@ export async function generateReport(req, res) {
                     });
                 }
                 // Generate Partnership PDF (currently uses mock data)
-                pdfBuffer = await pdfService.generateTestPDF({ format: 'A4' });
+                fileBuffer = await pdfService.generateTestPDF({ format: 'A4' });
                 break;
             }
             case REPORT_TYPE.SINGLE_DOMAIN: {
@@ -120,16 +154,16 @@ export async function generateReport(req, res) {
                     });
                 }
                 // Generate Single Domain PDF (currently uses mock data)
-                pdfBuffer = await pdfService.generateTestSingleDomainPDF({ format: 'A4' });
+                fileBuffer = await pdfService.generateTestSingleDomainPDF({ format: 'A4' });
                 break;
             }
             default:
                 throw new Error(`Unknown report type: ${requestData.reportType}`);
         }
         // Step 4: Upload PDF to Google Cloud Storage
-        const fileName = storageService.generateFileName(requestData.downloadId, requestData.reportType);
+        fileName = storageService.generateFileName(requestData.downloadId, requestData.reportType);
         logger.info('Uploading PDF to GCS', { fileName });
-        const downloadUrl = await storageService.uploadPDF(pdfBuffer, fileName, {
+        const downloadUrl = await storageService.uploadPDF(fileBuffer, fileName, {
             tenantId: requestData.tenantId,
             brandId: requestData.brandId,
             reportType: requestData.reportType,

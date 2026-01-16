@@ -80,6 +80,48 @@ export class StorageService {
     return `report_${reportType}_${jobId}_${timestamp}.pdf`;
   }
 
+  generateJsonFileName(jobId: string, reportType: string): string {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    return `export_${reportType}_${jobId}_${timestamp}.json`;
+  }
+
+  async uploadJSON(
+    data: unknown,
+    fileName: string,
+    metadata?: Record<string, string>
+  ): Promise<string> {
+    try {
+      const filePath = `${config.storage.reportPath}${fileName}`;
+      const file = this.bucket.file(filePath);
+      const jsonString = JSON.stringify(data, null, 2);
+
+      logger.info(`Uploading JSON to: ${filePath}`);
+
+      await file.save(jsonString, {
+        metadata: {
+          contentType: 'application/json',
+          cacheControl: 'public, max-age=86400', // 1 day cache
+          metadata: {
+            uploadedAt: new Date().toISOString(),
+            ...metadata,
+          },
+        },
+        resumable: false,
+      });
+
+      // Make the file publicly accessible
+      await file.makePublic();
+
+      const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${filePath}`;
+
+      logger.info(`JSON uploaded successfully: ${publicUrl}`);
+      return publicUrl;
+    } catch (error) {
+      logger.error(`Failed to upload JSON: ${fileName}`, error as Error);
+      throw error;
+    }
+  }
+
   async deleteFile(fileName: string): Promise<void> {
     try {
       const filePath = `${config.storage.reportPath}${fileName}`;
