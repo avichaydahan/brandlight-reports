@@ -94,6 +94,15 @@ export async function generateReport(req: Request, res: Response): Promise<void>
   try {
     // Step 1: Update status to IN-PROGRESS
     logger.info('Updating status to IN-PROGRESS');
+    await brandlightApi.updateDownload(
+      requestData.tenantId,
+      requestData.downloadId,
+      {
+        tenantId: requestData.tenantId,
+        brandId: requestData.brandId,
+        status: DOWNLOAD_STATUS.IN_PROGRESS,
+      }
+    );
 
     let fileBuffer: Buffer;
     let fileName: string;
@@ -143,7 +152,7 @@ export async function generateReport(req: Request, res: Response): Promise<void>
 
         logger.info('Uploading JSON to GCS', { fileName });
 
-        const downloadUrl = await storageService.uploadJSON(jsonExport, fileName, {
+        const { url: downloadUrl, path: storagePath } = await storageService.uploadJSON(jsonExport, fileName, requestData.tenantId, {
           tenantId: requestData.tenantId,
           brandId: requestData.brandId,
           reportType: requestData.reportType,
@@ -151,7 +160,20 @@ export async function generateReport(req: Request, res: Response): Promise<void>
           generatedAt: new Date().toISOString(),
         });
 
-        logger.info('JSON uploaded successfully', { downloadUrl });
+        logger.info('JSON uploaded successfully', { downloadUrl, storagePath });
+
+        // Update Brandlight with READY-FOR-DOWNLOAD status for JSON export
+        logger.info('Updating status to READY-FOR-DOWNLOAD for JSON export');
+        await brandlightApi.updateDownload(
+          requestData.tenantId,
+          requestData.downloadId,
+          {
+            tenantId: requestData.tenantId,
+            brandId: requestData.brandId,
+            status: DOWNLOAD_STATUS.READY_FOR_DOWNLOAD,
+            path: storagePath,
+          }
+        );
 
         // Return success response for JSON export
         res.json({
@@ -221,7 +243,7 @@ export async function generateReport(req: Request, res: Response): Promise<void>
     
     logger.info('Uploading PDF to GCS', { fileName });
     
-    const downloadUrl = await storageService.uploadPDF(fileBuffer, fileName, {
+    const { url: downloadUrl, path: storagePath } = await storageService.uploadPDF(fileBuffer, fileName, requestData.tenantId, {
       tenantId: requestData.tenantId,
       brandId: requestData.brandId,
       reportType: requestData.reportType,
@@ -229,10 +251,20 @@ export async function generateReport(req: Request, res: Response): Promise<void>
       generatedAt: new Date().toISOString(),
     });
 
-    logger.info('PDF uploaded successfully', { downloadUrl });
+    logger.info('PDF uploaded successfully', { downloadUrl, storagePath });
 
     // Step 5: Update Brandlight with READY-FOR-DOWNLOAD status
     logger.info('Updating status to READY-FOR-DOWNLOAD');
+    await brandlightApi.updateDownload(
+      requestData.tenantId,
+      requestData.downloadId,
+      {
+        tenantId: requestData.tenantId,
+        brandId: requestData.brandId,
+        status: DOWNLOAD_STATUS.READY_FOR_DOWNLOAD,
+        path: storagePath,
+      }
+    );
 
     // Return success response
     res.json({

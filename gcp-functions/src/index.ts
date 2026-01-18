@@ -36,7 +36,7 @@ http('demoTestReport', async (req: Request, res: Response) => {
 
     // Upload PDF to Google Cloud Storage
     const fileName = `test-report-${Date.now()}.pdf`;
-    const downloadUrl = await storageService.uploadPDF(pdfBuffer, fileName, {
+    const { url: downloadUrl } = await storageService.uploadPDF(pdfBuffer, fileName, 'demo-test', {
       reportType: 'Test',
       generatedAt: new Date().toISOString(),
       isDemo: 'true',
@@ -92,7 +92,7 @@ http('demoTestSingleDomainReport', async (req: Request, res: Response) => {
 
     // Upload PDF to Google Cloud Storage
     const fileName = `test-single-domain-report-${Date.now()}.pdf`;
-    const downloadUrl = await storageService.uploadPDF(pdfBuffer, fileName, {
+    const { url: downloadUrl } = await storageService.uploadPDF(pdfBuffer, fileName, 'demo-test', {
       reportType: 'TestSingleDomain',
       generatedAt: new Date().toISOString(),
       isDemo: 'true',

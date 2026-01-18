@@ -57,7 +57,7 @@ export const UpdateDownloadStatusRequestSchema = z.object({
     tenantId: z.string(),
     brandId: z.string(),
     status: DownloadStatusSchema,
-    downloadUrl: z.string().url().optional(),
+    path: z.string().optional(),
     error: z.string().optional(),
 });
 // ============================================================================

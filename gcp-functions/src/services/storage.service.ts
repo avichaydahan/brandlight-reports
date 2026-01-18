@@ -21,10 +21,11 @@ export class StorageService {
   async uploadPDF(
     buffer: Buffer,
     fileName: string,
+    tenantId: string,
     metadata?: Record<string, string>
-  ): Promise<string> {
+  ): Promise<{ url: string; path: string }> {
     try {
-      const filePath = `${config.storage.reportPath}${fileName}`;
+      const filePath = `${tenantId}/QUERIES/${fileName}`;
       const file = this.bucket.file(filePath);
 
       logger.info(`Uploading PDF to: ${filePath}`);
@@ -41,13 +42,10 @@ export class StorageService {
         resumable: false,
       });
 
-      // Make the file publicly accessible
-      await file.makePublic();
-
       const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${filePath}`;
 
       logger.info(`PDF uploaded successfully: ${publicUrl}`);
-      return publicUrl;
+      return { url: publicUrl, path: filePath };
     } catch (error) {
       logger.error(`Failed to upload PDF: ${fileName}`, error as Error);
       throw error;
@@ -88,10 +86,11 @@ export class StorageService {
   async uploadJSON(
     data: unknown,
     fileName: string,
+    tenantId: string,
     metadata?: Record<string, string>
-  ): Promise<string> {
+  ): Promise<{ url: string; path: string }> {
     try {
-      const filePath = `${config.storage.reportPath}${fileName}`;
+      const filePath = `${tenantId}/QUERIES/${fileName}`;
       const file = this.bucket.file(filePath);
       const jsonString = JSON.stringify(data, null, 2);
 
@@ -109,13 +108,10 @@ export class StorageService {
         resumable: false,
       });
 
-      // Make the file publicly accessible
-      await file.makePublic();
-
       const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${filePath}`;
 
       logger.info(`JSON uploaded successfully: ${publicUrl}`);
-      return publicUrl;
+      return { url: publicUrl, path: filePath };
     } catch (error) {
       logger.error(`Failed to upload JSON: ${fileName}`, error as Error);
       throw error;

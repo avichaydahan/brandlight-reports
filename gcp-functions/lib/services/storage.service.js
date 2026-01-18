@@ -14,9 +14,9 @@ export class StorageService {
         });
         this.bucket = this.storage.bucket(config.storage.bucket);
     }
-    async uploadPDF(buffer, fileName, metadata) {
+    async uploadPDF(buffer, fileName, tenantId, metadata) {
         try {
-            const filePath = `${config.storage.reportPath}${fileName}`;
+            const filePath = `${tenantId}/QUERIES/${fileName}`;
             const file = this.bucket.file(filePath);
             logger.info(`Uploading PDF to: ${filePath}`);
             await file.save(buffer, {
@@ -30,11 +30,9 @@ export class StorageService {
                 },
                 resumable: false,
             });
-            // Make the file publicly accessible
-            await file.makePublic();
             const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${filePath}`;
             logger.info(`PDF uploaded successfully: ${publicUrl}`);
-            return publicUrl;
+            return { url: publicUrl, path: filePath };
         }
         catch (error) {
             logger.error(`Failed to upload PDF: ${fileName}`, error);
@@ -65,9 +63,9 @@ export class StorageService {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         return `export_${reportType}_${jobId}_${timestamp}.json`;
     }
-    async uploadJSON(data, fileName, metadata) {
+    async uploadJSON(data, fileName, tenantId, metadata) {
         try {
-            const filePath = `${config.storage.reportPath}${fileName}`;
+            const filePath = `${tenantId}/QUERIES/${fileName}`;
             const file = this.bucket.file(filePath);
             const jsonString = JSON.stringify(data, null, 2);
             logger.info(`Uploading JSON to: ${filePath}`);
@@ -82,11 +80,9 @@ export class StorageService {
                 },
                 resumable: false,
             });
-            // Make the file publicly accessible
-            await file.makePublic();
             const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${filePath}`;
             logger.info(`JSON uploaded successfully: ${publicUrl}`);
-            return publicUrl;
+            return { url: publicUrl, path: filePath };
         }
         catch (error) {
             logger.error(`Failed to upload JSON: ${fileName}`, error);
