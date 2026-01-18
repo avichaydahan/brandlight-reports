@@ -11,11 +11,10 @@
     "build:watch": "tsc -p ./ --watch",
     "start": "npm run build && functions-framework --target=demoTestReport --port=8080",
     "deploy": "npm run build && gcloud functions deploy generate-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=generateReport --trigger-http --allow-unauthenticated --memory=2Gi --timeout=540s --set-build-env-vars=GOOGLE_NODE_RUN_SCRIPTS=",
-    "deploy:all": "npm run build && npm run deploy:demo-test && npm run deploy:demo-single-domain && npm run deploy:generate-report && npm run deploy:health-check",
+    "deploy:all": "npm run build && npm run deploy:demo-test && npm run deploy:demo-single-domain && npm run deploy:generate-report",
     "deploy:demo-test": "gcloud functions deploy demo-test-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=demoTestReport --trigger-http --allow-unauthenticated --memory=1Gi --timeout=60s --set-build-env-vars=GOOGLE_NODE_RUN_SCRIPTS=",
     "deploy:demo-single-domain": "gcloud functions deploy demo-test-single-domain-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=demoTestSingleDomainReport --trigger-http --allow-unauthenticated --memory=1Gi --timeout=60s --set-build-env-vars=GOOGLE_NODE_RUN_SCRIPTS=",
     "deploy:generate-report": "gcloud functions deploy generate-report --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=generateReport --trigger-http --allow-unauthenticated --memory=2Gi --timeout=540s --set-build-env-vars=GOOGLE_NODE_RUN_SCRIPTS=",
-    "deploy:health-check": "gcloud functions deploy brandlight-health-check --gen2 --runtime=nodejs20 --region=us-central1 --source=. --entry-point=brandlightHealthCheck --trigger-http --allow-unauthenticated --memory=256Mi --timeout=30s --set-build-env-vars=GOOGLE_NODE_RUN_SCRIPTS=",
     "dev": "NODE_ENV=development tsx watch src/dev/devServer.ts",
     "dev:clean": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true && npm run dev",
     "lint": "eslint src/**/*.ts",
@@ -24,7 +23,6 @@
     "clean": "rm -rf lib"
   },
   "dependencies": {
-    "@descope/node-sdk": "^1.7.19",
     "@google-cloud/firestore": "^7.3.0",
     "@google-cloud/functions-framework": "^3.4.0",
     "@google-cloud/storage": "^7.7.0",

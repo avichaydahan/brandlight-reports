@@ -2,7 +2,7 @@ import { http } from '@google-cloud/functions-framework';
 import { StorageService } from './services/storage.service.js';
 import { PDFService } from './services/pdf.service.js';
 import { createLogger } from './utils/logger.js';
-import { generateReport, brandlightHealthCheck } from './tasks/index.js';
+import { generateReport } from './tasks/index.js';
 const logger = createLogger('HTTPFunctions');
 // Initialize services
 const storageService = new StorageService();
@@ -118,18 +118,4 @@ http('generateReport', async (req, res) => {
         return;
     }
     await generateReport(req, res);
-});
-/**
- * Health Check endpoint
- */
-http('brandlightHealthCheck', async (req, res) => {
-    // Set CORS headers
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') {
-        res.status(204).send('');
-        return;
-    }
-    await brandlightHealthCheck(req, res);
 });

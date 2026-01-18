@@ -35,18 +35,11 @@ export type Config = typeof config;
 
 /**
  * Brandlight API Configuration
- * Access key is used for authentication with Brandlight's API via Descope
+ * Authentication is done by passing the Authorization header from incoming requests
  */
 export const brandlightConfig = {
   // API Base URL - using dev environment
   apiBaseUrl: process.env.BRANDLIGHT_API_URL || 'https://api.dev.brandlight.ai',
-  
-  // Descope Project ID for authentication
-  descopeProjectId: process.env.DESCOPE_PROJECT_ID || 'P2pnyVnSm5HjzBd1QkGaEQbbzqzc',
-  
-  // Access Key for authentication (exchanged for JWT via Descope)
-  // This key should be stored securely in environment variables or GCP Secret Manager
-  accessKey: process.env.BRANDLIGHT_ACCESS_KEY || 'K37z0AeZprQ9mVhERisY9mbqeLu95hCHUw7aPFQWsNb89PWXHN41zeQbzXwjzWNhSo79kO0',
   
   // Request timeout in milliseconds
   timeout: parseInt(process.env.BRANDLIGHT_API_TIMEOUT || '30000', 10),

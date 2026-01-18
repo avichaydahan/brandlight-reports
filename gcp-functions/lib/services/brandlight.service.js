@@ -1,5 +1,4 @@
 import fetch from 'node-fetch';
-import DescopeClient from '@descope/node-sdk';
 import { createLogger } from '../utils/logger.js';
 import { brandlightConfig } from '../config/index.js';
 import { BrandlightApiError, } from '../types/brandlight.js';
@@ -7,32 +6,15 @@ const logger = createLogger('BrandlightApiService');
 /**
  * Brandlight API Service
  * Handles all communication with the Brandlight API
- * Uses Descope for authentication - exchanges access key for JWT
+ * Authentication is done by passing the Authorization header from incoming requests
  */
 export class BrandlightApiService {
     baseUrl;
-    accessKey;
-    descopeProjectId;
-    jwt = null;
-    jwtExpiry = null;
     timeout;
-    descopeClient = null;
     externalAuthToken = null;
     constructor() {
         this.baseUrl = brandlightConfig.apiBaseUrl;
-        this.accessKey = brandlightConfig.accessKey;
-        this.descopeProjectId = brandlightConfig.descopeProjectId;
         this.timeout = brandlightConfig.timeout;
-        // Initialize Descope client if project ID is configured
-        if (this.descopeProjectId) {
-            try {
-                this.descopeClient = DescopeClient({ projectId: this.descopeProjectId });
-                logger.info('Descope client initialized', { projectId: this.descopeProjectId });
-            }
-            catch (error) {
-                logger.error('Failed to initialize Descope client', error);
-            }
-        }
     }
     /**
      * Set external auth token from incoming request
@@ -45,71 +27,16 @@ export class BrandlightApiService {
         }
     }
     /**
-     * Get or refresh JWT token using Descope
-     * Exchanges the access key for a fresh JWT token
+     * Get auth token from external request
+     * Uses the Authorization header passed from the incoming request
      */
     async getAuthToken() {
-        // If external token is set, use it directly
-        if (this.externalAuthToken) {
-            const tokenPreview = this.externalAuthToken.substring(0, 50) + '...';
-            logger.info('Using external auth token from incoming request', { tokenPreview });
-            return this.externalAuthToken;
+        if (!this.externalAuthToken) {
+            throw new BrandlightApiError('No authorization token provided. Authorization header is required.', 401);
         }
-        // Check if we have a valid JWT (with 1 minute buffer)
-        if (this.jwt && this.jwtExpiry && Date.now() < this.jwtExpiry - 60000) {
-            logger.info('Using cached JWT token', {
-                expiresAt: new Date(this.jwtExpiry).toISOString()
-            });
-            return this.jwt;
-        }
-        // Exchange access key for JWT using Descope
-        if (this.descopeClient && this.accessKey) {
-            try {
-                logger.info('Exchanging access key for JWT via Descope');
-                const authInfo = await this.descopeClient.exchangeAccessKey(this.accessKey);
-                // authInfo contains: jwt, token (parsed), cookies
-                if (authInfo && authInfo.jwt) {
-                    this.jwt = authInfo.jwt;
-                    // Get expiry from parsed token
-                    if (authInfo.token?.exp) {
-                        this.jwtExpiry = authInfo.token.exp * 1000;
-                        logger.info('JWT obtained successfully', {
-                            expiresAt: new Date(this.jwtExpiry).toISOString()
-                        });
-                    }
-                    else {
-                        // Default 10 minutes if no exp in token
-                        this.jwtExpiry = Date.now() + 10 * 60 * 1000;
-                    }
-                    return this.jwt;
-                }
-                else {
-                    throw new Error('Descope exchange returned no JWT');
-                }
-            }
-            catch (error) {
-                logger.error('Failed to exchange access key for JWT', error);
-                throw new BrandlightApiError(`Authentication failed: ${error.message}`, 401);
-            }
-        }
-        // Fallback: If access key looks like a JWT, use it directly
-        if (this.accessKey && this.accessKey.split('.').length === 3) {
-            logger.warn('Using access key directly as JWT (no Descope client)');
-            this.jwt = this.accessKey;
-            // Parse expiry
-            try {
-                const parts = this.accessKey.split('.');
-                const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-                if (payload.exp) {
-                    this.jwtExpiry = payload.exp * 1000;
-                }
-            }
-            catch {
-                this.jwtExpiry = Date.now() + 10 * 60 * 1000; // Default 10 minutes
-            }
-            return this.jwt;
-        }
-        throw new BrandlightApiError('No valid authentication method available', 401);
+        const tokenPreview = this.externalAuthToken.substring(0, 50) + '...';
+        logger.info('Using external auth token from incoming request', { tokenPreview });
+        return this.externalAuthToken;
     }
     /**
      * Make an authenticated request to the Brandlight API
@@ -301,77 +228,6 @@ export class BrandlightApiService {
         };
         console.log('getExportDataWithBody', requestBody);
         return this.request('POST', `/api/v1/tenant/${tenantId}/queries/${brandId}/export`, requestBody);
-    }
-    // ============================================================================
-    // Utility Methods
-    // ============================================================================
-    /**
-     * Check if the API is properly configured and reachable
-     */
-    async healthCheck() {
-        const accessKeyPreview = this.accessKey;
-        logger.info('Health check starting', {
-            accessKeyPreview,
-            hasDescopeClient: !!this.descopeClient,
-            descopeProjectId: this.descopeProjectId || 'NOT SET'
-        });
-        // Check if access key is configured
-        if (!this.accessKey) {
-            return {
-                isHealthy: false,
-                error: 'BRANDLIGHT_ACCESS_KEY is not configured',
-                debug: { accessKeyPreview, hasDescopeClient: !!this.descopeClient }
-            };
-        }
-        // Check if Descope is configured
-        if (!this.descopeClient) {
-            return {
-                isHealthy: false,
-                error: 'DESCOPE_PROJECT_ID is not configured - cannot exchange access key for JWT',
-                debug: { accessKeyPreview, descopeProjectId: this.descopeProjectId || 'NOT SET' }
-            };
-        }
-        // Try to exchange access key for JWT
-        try {
-            const token = await this.getAuthToken();
-            return {
-                isHealthy: true,
-                debug: {
-                    accessKeyPreview,
-                    hasDescopeClient: true,
-                    jwtObtained: !!token,
-                    tokenExpiry: this.jwtExpiry ? new Date(this.jwtExpiry).toISOString() : null
-                }
-            };
-        }
-        catch (error) {
-            return {
-                isHealthy: false,
-                error: `Failed to obtain JWT: ${error.message}`,
-                debug: { accessKeyPreview, hasDescopeClient: !!this.descopeClient }
-            };
-        }
-    }
-    /**
-     * Check if access key is configured
-     */
-    isConfigured() {
-        return !!this.accessKey && this.accessKey.length > 0;
-    }
-    /**
-     * Check if the current JWT is still valid
-     */
-    isTokenValid() {
-        if (!this.jwt || !this.jwtExpiry) {
-            return false;
-        }
-        return Date.now() < this.jwtExpiry - 60000; // 1 minute buffer
-    }
-    /**
-     * Get token expiry time
-     */
-    getTokenExpiry() {
-        return this.jwtExpiry ? new Date(this.jwtExpiry) : null;
     }
 }
 // Singleton instance
