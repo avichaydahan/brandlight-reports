@@ -99,6 +99,20 @@ export const ExportRequestSchema = z.object({
     viewId: z.string().nullable().optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
+    selectedFields: z.object({
+        answers: z.boolean().optional(),
+        citations: z.boolean().optional(),
+        queries: z.array(z.enum([
+            'query',
+            'queryType',
+            'estimatedSearchVolume',
+            'queryImportanceRanking',
+            'persona',
+            'associatedCategory',
+            'stageInFunnel',
+            'searchQueries',
+        ])).optional(),
+    }).optional(),
 });
 // ============================================================================
 // Query/Report Data Types (from Brandlight API responses)

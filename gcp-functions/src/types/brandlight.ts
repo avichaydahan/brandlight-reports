@@ -120,6 +120,26 @@ export const ViewStateSchema = z.object({
 export type ViewState = z.infer<typeof ViewStateSchema>;
 
 // ============================================================================
+// Selected Fields Types
+// ============================================================================
+
+export type QueryFieldName =
+  | 'query'
+  | 'queryType'
+  | 'estimatedSearchVolume'
+  | 'queryImportanceRanking'
+  | 'persona'
+  | 'associatedCategory'
+  | 'stageInFunnel'
+  | 'searchQueries';
+
+export interface SelectedFields {
+  answers?: boolean;
+  citations?: boolean;
+  queries?: QueryFieldName[];
+}
+
+// ============================================================================
 // Export Request (for fetching data)
 // ============================================================================
 
@@ -137,6 +157,20 @@ export const ExportRequestSchema = z.object({
   viewId: z.string().nullable().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  selectedFields: z.object({
+    answers: z.boolean().optional(),
+    citations: z.boolean().optional(),
+    queries: z.array(z.enum([
+      'query',
+      'queryType',
+      'estimatedSearchVolume',
+      'queryImportanceRanking',
+      'persona',
+      'associatedCategory',
+      'stageInFunnel',
+      'searchQueries',
+    ])).optional(),
+  }).optional(),
 });
 
 export type ExportRequest = z.infer<typeof ExportRequestSchema>;
