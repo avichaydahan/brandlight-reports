@@ -289,21 +289,38 @@ export class BrandlightApiService {
       pageRequests.push(pagePromise);
     }
 
-    logger.info(`Executing ${totalPages} pages in parallel...`);
+    // Execute requests in batches of 15 to avoid overwhelming the server
+    const BATCH_SIZE = 15;
+    const totalBatches = Math.ceil(pageRequests.length / BATCH_SIZE);
+    
+    logger.info(`Executing ${totalPages} pages in ${totalBatches} batches of ${BATCH_SIZE}...`);
 
-    // Execute all requests in parallel
-    const results = await Promise.all(pageRequests);
+    const allResults: { pageIndex: number; data: unknown[] }[] = [];
+    
+    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+      const batchStart = batchIndex * BATCH_SIZE;
+      const batchEnd = Math.min(batchStart + BATCH_SIZE, pageRequests.length);
+      const batch = pageRequests.slice(batchStart, batchEnd);
+      
+      logger.info(`Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} requests)`);
+      
+      const batchResults = await Promise.all(batch);
+      allResults.push(...batchResults);
+      
+      logger.info(`Batch ${batchIndex + 1}/${totalBatches} completed`);
+    }
 
     // Sort by page index to maintain order and combine data
-    results.sort((a, b) => a.pageIndex - b.pageIndex);
+    allResults.sort((a, b) => a.pageIndex - b.pageIndex);
     const allData: unknown[] = [];
-    for (const result of results) {
+    for (const result of allResults) {
       allData.push(...result.data);
     }
 
-    logger.info('Parallel paginated export complete', {
+    logger.info('Batched parallel export complete', {
       totalFetched: allData.length,
       pages: totalPages,
+      batches: totalBatches,
     });
 
     return {
