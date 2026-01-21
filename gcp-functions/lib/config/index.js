@@ -36,7 +36,7 @@ export const brandlightConfig = {
     // API Base URL - using dev environment
     apiBaseUrl: process.env.BRANDLIGHT_API_URL || 'https://api.dev.brandlight.ai',
     // Request timeout in milliseconds
-    timeout: parseInt(process.env.BRANDLIGHT_API_TIMEOUT || '30000', 10),
+    timeout: parseInt(process.env.BRANDLIGHT_API_TIMEOUT || '540000', 10),
     // Retry configuration
     retry: {
         maxRetries: 3,

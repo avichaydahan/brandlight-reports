@@ -145,74 +145,71 @@ export class BrandlightApiService {
         return this.request('POST', endpoint, requestBody);
     }
     /**
-     * Fetch all export data with pagination
-     * Handles large datasets by fetching in pages and combining results
-     * Uses the start and amount from the request for pagination
+     * Fetch all export data with pagination (PARALLEL)
+     * Handles large datasets by calculating all pages upfront and fetching them in parallel
+     * Much faster than sequential fetching for large datasets
      */
     async getExportDataPaginated(tenantId, brandId, request) {
-        const allData = [];
         const startOffset = request.start || 0;
         const totalAmount = request.amount || 100;
-        const pageSize = totalAmount;
-        let currentStart = startOffset;
-        let pageCount = 0;
-        let hasMore = true;
-        logger.info('Starting paginated export', {
+        const pageSize = 100;
+        // Calculate number of pages needed
+        const totalPages = Math.ceil(totalAmount / pageSize);
+        logger.info('Starting PARALLEL paginated export', {
             tenantId,
             brandId,
             startOffset,
             totalAmount,
+            pageSize,
+            totalPages,
         });
-        while (hasMore) {
+        // Build all page requests
+        const pageRequests = [];
+        for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+            const currentStart = startOffset + (pageIndex * pageSize);
+            const remaining = totalAmount - (pageIndex * pageSize);
+            const fetchAmount = Math.min(pageSize, remaining);
             const pageRequest = {
                 ...request,
                 tenantId,
                 brandId,
                 start: currentStart,
-                amount: pageSize,
+                amount: fetchAmount,
             };
-            logger.info(`Fetching page ${pageCount + 1}`, {
+            logger.info(`Queuing page ${pageIndex + 1}/${totalPages}`, {
                 start: currentStart,
-                amount: pageSize,
+                amount: fetchAmount,
             });
-            const response = await this.request('POST', `/api/v1/tenant/${tenantId}/queries/${brandId}/export`, pageRequest);
-            // Handle the response - could be queries array or other data structure
-            const pageData = response.queries || response.metadata || response;
-            if (Array.isArray(pageData)) {
-                allData.push(...pageData);
-                // If we got fewer items than requested, we've reached the end
-                if (pageData.length < pageSize) {
-                    logger.info('Reached end of data', {
-                        fetchedInPage: pageData.length,
-                        requested: pageSize
-                    });
-                    hasMore = false;
-                }
-                else {
-                    // Move to next page
-                    currentStart += pageSize;
-                    pageCount++;
-                }
-            }
-            else {
-                // If response is not an array, add it as a single item
-                allData.push(pageData);
-                hasMore = false;
-            }
-            // Safety check to prevent infinite loops
-            if (pageCount > 1000) {
-                logger.warn('Pagination safety limit reached');
-                hasMore = false;
-            }
+            // Create promise for this page
+            const pagePromise = this.request('POST', `/api/v1/tenant/${tenantId}/queries/${brandId}/export`, pageRequest).then(response => {
+                const pageData = response.data || response;
+                logger.info(`Page ${pageIndex + 1} completed`, {
+                    itemsReceived: Array.isArray(pageData) ? pageData.length : 1,
+                });
+                return {
+                    pageIndex,
+                    data: Array.isArray(pageData) ? pageData : [pageData],
+                };
+            });
+            pageRequests.push(pagePromise);
         }
-        logger.info('Paginated export complete', {
+        logger.info(`Executing ${totalPages} pages in parallel...`);
+        // Execute all requests in parallel
+        const results = await Promise.all(pageRequests);
+        // Sort by page index to maintain order and combine data
+        results.sort((a, b) => a.pageIndex - b.pageIndex);
+        const allData = [];
+        for (const result of results) {
+            allData.push(...result.data);
+        }
+        logger.info('Parallel paginated export complete', {
             totalFetched: allData.length,
-            pages: pageCount + 1,
+            pages: totalPages,
         });
         return {
             data: allData,
             totalFetched: allData.length,
-            pages: pageCount + 1,
+            pages: totalPages,
         };
     }
     /**

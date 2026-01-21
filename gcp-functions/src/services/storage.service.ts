@@ -93,19 +93,29 @@ export class StorageService {
       const filePath = `${tenantId}/QUERIES/${fileName}`;
       const file = this.bucket.file(filePath);
       const jsonString = JSON.stringify(data, null, 2);
+      const jsonBuffer = Buffer.from(jsonString, 'utf-8');
+      const fileSizeInMB = jsonBuffer.length / (1024 * 1024);
 
-      logger.info(`Uploading JSON to: ${filePath}`);
+      logger.info(`Uploading JSON to: ${filePath}`, {
+        sizeBytes: jsonBuffer.length,
+        sizeMB: fileSizeInMB.toFixed(2),
+      });
 
-      await file.save(jsonString, {
+      // Use resumable upload for files larger than 5MB
+      const useResumable = fileSizeInMB > 5;
+
+      await file.save(jsonBuffer, {
         metadata: {
           contentType: 'application/json',
           cacheControl: 'public, max-age=86400', // 1 day cache
           metadata: {
             uploadedAt: new Date().toISOString(),
+            fileSizeMB: fileSizeInMB.toFixed(2),
             ...metadata,
           },
         },
-        resumable: false,
+        resumable: useResumable,
+        timeout: 300000, // 5 minutes timeout for upload
       });
 
       const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${filePath}`;

@@ -52,7 +52,7 @@ export const brandlightConfig = {
   accessKey: process.env.BRANDLIGHT_ACCESS_KEY || 'K37z0AeZprQ9mVhERisY9mbqeLu95hCHUw7aPFQWsNb89PWXHN41zeQbzXwjzWNhSo79kO0',
   
   // Request timeout in milliseconds
-  timeout: parseInt(process.env.BRANDLIGHT_API_TIMEOUT || '30000', 10),
+  timeout: parseInt(process.env.BRANDLIGHT_API_TIMEOUT || '300000', 10),
   
   // Retry configuration
   retry: {

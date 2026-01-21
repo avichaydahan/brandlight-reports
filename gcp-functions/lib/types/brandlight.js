@@ -158,6 +158,7 @@ export const QueryResultItemSchema = z.object({
 });
 // Export response (full data from /export endpoint)
 export const ExportResponseSchema = z.object({
+    data: z.array(QueryResultItemSchema).optional(),
     queries: z.array(QueryResultItemSchema).optional(),
     engines: z.array(EngineSchema).optional(),
     categories: z.array(CategorySchema).optional(),
