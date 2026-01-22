@@ -163,8 +163,8 @@ export class BrandlightApiService {
             pageSize,
             totalPages,
         });
-        // Build all page requests
-        const pageRequests = [];
+        // Build all page request configurations (NOT promises - to defer execution)
+        const pageConfigs = [];
         for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
             const currentStart = startOffset + (pageIndex * pageSize);
             const remaining = totalAmount - (pageIndex * pageSize);
@@ -180,8 +180,20 @@ export class BrandlightApiService {
                 start: currentStart,
                 amount: fetchAmount,
             });
-            // Create promise for this page
-            const pagePromise = this.request('POST', `/api/v1/tenant/${tenantId}/queries/${brandId}/export`, pageRequest).then(response => {
+            pageConfigs.push({ pageIndex, request: pageRequest });
+        }
+        // Execute requests in batches of 15 to avoid overwhelming the server
+        const BATCH_SIZE = 15;
+        const totalBatches = Math.ceil(pageConfigs.length / BATCH_SIZE);
+        logger.info(`Executing ${totalPages} pages in ${totalBatches} batches of ${BATCH_SIZE}...`);
+        const allResults = [];
+        for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+            const batchStart = batchIndex * BATCH_SIZE;
+            const batchEnd = Math.min(batchStart + BATCH_SIZE, pageConfigs.length);
+            const batchConfigs = pageConfigs.slice(batchStart, batchEnd);
+            logger.info(`Processing batch ${batchIndex + 1}/${totalBatches} (${batchConfigs.length} requests)`);
+            // Create and execute promises only now (deferred execution)
+            const batchPromises = batchConfigs.map(({ pageIndex, request: pageRequest }) => this.request('POST', `/api/v1/tenant/${tenantId}/queries/${brandId}/export`, pageRequest).then(response => {
                 const pageData = response.data || response;
                 logger.info(`Page ${pageIndex + 1} completed`, {
                     itemsReceived: Array.isArray(pageData) ? pageData.length : 1,
@@ -190,20 +202,8 @@ export class BrandlightApiService {
                     pageIndex,
                     data: Array.isArray(pageData) ? pageData : [pageData],
                 };
-            });
-            pageRequests.push(pagePromise);
-        }
-        // Execute requests in batches of 15 to avoid overwhelming the server
-        const BATCH_SIZE = 15;
-        const totalBatches = Math.ceil(pageRequests.length / BATCH_SIZE);
-        logger.info(`Executing ${totalPages} pages in ${totalBatches} batches of ${BATCH_SIZE}...`);
-        const allResults = [];
-        for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-            const batchStart = batchIndex * BATCH_SIZE;
-            const batchEnd = Math.min(batchStart + BATCH_SIZE, pageRequests.length);
-            const batch = pageRequests.slice(batchStart, batchEnd);
-            logger.info(`Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} requests)`);
-            const batchResults = await Promise.all(batch);
+            }));
+            const batchResults = await Promise.all(batchPromises);
             allResults.push(...batchResults);
             logger.info(`Batch ${batchIndex + 1}/${totalBatches} completed`);
         }
